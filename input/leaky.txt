@@ -1,0 +1,189 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{crypto}
+
+# Since leaks cannot be discarded, we limit naturality of discard #
+Schema{naturality}{x.d}{x.s.c.d.?}
+
+# Leaks addition #
+Operation{l}{}{1}{1}
+
+Schema{naturality}{x.c}{x.s.c.d.l}
+
+# Leaks can be copied #
+
+# LEAK #
+
+Define{2}{
+	0.l;
+	0.x;
+}={
+	0.x;
+	1.l;
+}
+
+Assume{2}{
+	1.l;
+	0.x;
+}={
+	0.x;
+	0.l;
+}
+
+Define{1}{
+	0.l;
+	0.c;
+}={
+	0.c;
+	0.l;
+}
+
+Lemma{1}{
+	0.l;
+	0.c;
+}={
+	0.c;
+	1.l;
+}
+
+Define{1}{
+	0.l;
+	0.l;
+}={
+	0.l;
+}
+
+
+# Back to cryptography #
+
+
+# Symmetric Key Decrypt# 
+Lemma{2}{
+	0.c;
+	1.s;
+	1.l;
+	0.s;
+}={
+	1.c;
+	0.s;
+	0.l;
+	0.d;
+}
+
+
+Assume{2}{
+	1.c;
+	0.s;
+	0.l;
+	0.s;
+}={
+	0.c;
+	1.s;
+	1.l;
+	1.d;
+}
+
+
+Define{0}{
+	0.?;
+	0.l;
+	0.d;
+}={}
+
+Example{1}{
+	0.?;
+	0.c;
+	1.s;
+	1.l;
+	0.s;
+}={}
+
+
+Define{2}{
+	0.l;
+	1.l;
+	0.s;
+}={
+	0.l;
+	0.s;
+	0.l;
+}
+Assume{2}{
+	0.l;
+	1.l;
+	0.s;
+}={
+	1.l;
+	0.s;
+	0.l;
+}
+
+Example{1}{
+	0.?;
+	0.l;
+	0.c;
+	1.s;
+	1.l;
+	0.s;
+}={
+	0.l;
+}
+
+
+# Key re-used #
+Exercise{3}{
+	0.l;
+	1.c;
+	0.s;
+	0.l;
+	1.s;
+	1.l;
+}={
+	2.l;
+	1.c;
+	0.s;
+	0.l;
+	1.s;
+	1.l;
+}
+
+Definition{3}{
+	1.c;
+	0.s;
+	0.l;
+	1.s;
+	1.l;
+}={
+	0.c;
+	2.c;
+	4.c;
+	1.x;
+	3.x;
+	0.s;
+	0.l;
+	1.s;
+	1.l;
+	1.d;
+	1.s;
+}
+
+Example{2}{
+	1.?;
+	1.c;
+	1.c;
+	0.s;
+	0.l;
+	0.s;
+	1.c;
+	2.s;
+	2.l;
+	1.s;
+}={
+	0.c;
+	2.c;
+	1.s;
+	1.l;
+	1.d;
+}
+
+

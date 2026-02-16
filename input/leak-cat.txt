@@ -1,0 +1,27 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{Cartesian}
+
+# Limiting naturality #
+Schema{naturality}{x.c}{x.c.d}
+Schema{naturality}{x.d}{x.c.d}
+
+Operation{q}{}{1}{0}
+
+Assume{2}{0.x;0.q;0.q;}{0.q;0.q;}
+
+Schema{<naturality}{x.q}{}
+
+Lemma{1}{0.c;0.q;0.q;}>{0.q;}
+
+Operation{l}{}{1}{1}
+
+Definition{1}{0.l;}{0.c;1.q;}
+Lemma{1}{0.l;0.q;}>{0.q;}
+
+Lemma{1}{0.l;0.l;}{0.l;}
+
+Lemma{1}{0.l;}>{}
+
+Lemma{1}{0.l;0.c;}{0.c;0.l;}
+Lemma{1}{0.l;0.c;}{0.c;1.l;}

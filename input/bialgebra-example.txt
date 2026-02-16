@@ -1,0 +1,157 @@
+# Bialgebra example #
+
+Import{symmetry}
+
+Operation{c}{2}{1}{2}
+Operation{d}{2}{1}{0}
+Operation{e}{w}{2}{1}
+Operation{b}{w}{0}{1}
+
+Operation{C}{2}{1}{3}
+Operation{E}{w}{3}{1}
+Operation{X}{3}{3}{3}
+
+
+# associative #
+Assume{3}{
+	0.e;
+	0.e;
+}={
+	1.e;
+	0.e;
+}
+
+
+
+# unital # 
+Assume{1}{
+	0.b;
+	0.e;
+}={}
+Assume{1}{
+	1.b;
+	0.e;
+}={}
+
+
+
+# commutative #
+Assume{2}{
+	0.x;
+	0.e;
+}={
+
+	0.e;
+}
+
+
+# co-associativity #
+
+Assume{1}{
+	0.c; 
+	0.c;
+}={
+	0.c; 
+	1.c;
+}
+
+
+# co-unitality #
+
+Assume{1}{}={
+	0.c; 
+	0.d;
+}
+Assume{1}{}={
+	0.c; 
+	1.d;
+}
+
+
+# co-commutativity #
+Assume{1}{
+	0.c; 
+	0.x;
+}={
+	0.c; 
+}
+
+# Unit : Co-unit#
+Basic{distribute}{x.b.d}
+
+# Zero Determinism #
+Basic{distribute}{x.b.c}
+
+# Zero Determinism #
+Basic{distribute}{x.e.d}
+
+# Bialgebra #
+Basic{distribute}{x.e.c}
+
+Assume{1}{
+	0.c;
+	0.c;
+}={
+	0.C;
+}
+
+Assume{3}{
+	0.e;
+	0.e;
+}={
+	0.E;
+}
+
+Assume{3}{
+	0.x;
+	1.x;
+	0.x;
+}={
+	0.X;
+}
+
+
+Exercise{3}{	
+	0.E;
+	0.C;
+}={
+	1.C;
+	0.C;
+	6.C;
+	2.x;
+	5.x;
+	1.x;
+	3.X;
+	6.x;
+	2.x;
+	5.x;
+	0.E;
+	4.E;
+	1.E;
+}
+
+Schema{naturality}{x.c}
+Schema{naturality}{x.e}
+
+
+Exercise{3}{	
+	0.E;
+	0.C;
+}={
+	1.C;
+	0.C;
+	6.C;
+	2.x;
+	5.x;
+	1.x;
+	3.X;
+	6.x;
+	2.x;
+	5.x;
+	0.E;
+	4.E;
+	1.E;
+}
+
+
+

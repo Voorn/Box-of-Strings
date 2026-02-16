@@ -1,0 +1,25 @@
+# Theory of symmetric monoidal categories using swap operation. Adds general schema for symmetry near the end #
+
+# Swap Operation #
+Operation{x}{1}{2}{2}
+
+# Double swap #
+Define{2}{0.x;0.x;}{}
+
+# Yang-Baxter #
+Define{3}{0.x;1.x;0.x;}{1.x;0.x;1.x;}
+
+Lemma{3}{0.x;1.x;0.x;1.x;}{1.x;0.x;}
+Assume{3}{1.x;0.x;1.x;0.x;}{0.x;1.x;}
+
+# Weaver's Lemma #
+Lemma{3}{1.x;0.x;1.x;0.x;1.x;0.x;}{}
+Assume{3}{1.x;0.x;1.x;0.x;1.x;0.x;}{}
+
+# First Exercise #
+Example{4}{1.x;0.x;2.x;1.x;0.x;2.x;1.x;}{0.x;2.x;1.x;0.x;2.x;}
+
+
+Schema{symmetry}{x}{}
+
+Example{6}{0.x;1.x;2.x;3.x;4.x;3.x;2.x;1.x;0.x;}{4.x;3.x;2.x;1.x;0.x;1.x;2.x;3.x;4.x;}

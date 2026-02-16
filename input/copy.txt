@@ -1,0 +1,41 @@
+# Adds a copy operation to the theory of symmetry. Copy is not considered natural #
+
+# Loading symmetry theory #
+Import{symmetry}
+
+Operation{c}{2}{1}{2}
+
+# Copy and swap: automaticaly added, but displayed for convenience #
+Definition{2}{0.x;0.c;}{1.c;0.x;1.x;}
+
+Lemma {2}{0.x;0.c;1.x;}{1.c;0.x;}
+Assume{2}{0.x;1.c;0.x;}{0.c;1.x;}
+
+Lemma {2}{0.x;1.c;0.x;1.x;}{0.c;}
+Assume{2}{0.x;0.c;1.x;0.x;}{1.c;}
+
+Example{2}{0.x;0.c;2.c;1.x;0.x;2.x;1.x;}{0.c;2.c;}
+
+# Copy: co-associativity #
+Display{1}{0.c;0.c;}{0.c;1.c;}
+
+Lemma{1}{0.c;0.c;0.c;}{0.c;1.c;2.c;}
+
+# Copy: co-commutativity #
+Display{1}{0.c;0.x;}{0.c;}
+
+Lemma{1}{0.c;0.c;1.x;}{0.c;0.c;}
+
+Assume{1}{0.c;1.c;0.x;}{0.c;1.c;}
+
+# Interchange #
+Lemma{1}{0.c;0.c;2.c;1.x;}{0.c;0.c;2.c;}
+
+
+
+
+
+
+
+
+

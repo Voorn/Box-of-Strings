@@ -1,0 +1,189 @@
+# Show-case of symmetric key encryption with key-gen ? and encryption/decryption operation s #
+
+# Import the copy-discard category theory #
+Import{Cartesian}
+
+# SYMMETRIC ENCRYPTION & KEYGEN #
+Operation{s}{}{2}{1}
+
+
+
+
+Assume{3}{
+	0.s;
+	0.x;
+}{
+	1.x;
+	0.x;
+	1.s;
+}
+
+Assume{3}{
+	1.s;
+	0.x;
+}={
+	0.x;
+	1.x;
+	0.s;
+}
+
+# Symmetric Key Decrypt# 
+Definition{2}{
+	0.c;
+	1.s;
+	0.s;
+}
+======================
+{
+	0.d;
+}
+
+# Doubly encrypted #
+Example{3}{
+	0.c;
+	1.x;
+	1.c;
+	3.s;
+	2.s;
+	1.s;
+	0.s;
+}={
+	0.d;
+	0.d;
+}
+
+
+
+
+Display{2}{
+	0.x;
+	0.s;
+}={
+	0.s;
+}
+
+Lemma{2}{
+	1.c;
+	0.s;
+	0.s;
+}
+======================
+{
+	1.d;
+}
+
+
+# Before adding random keygen, we limit naturality conditions of copy #
+Schema{naturality}{x.c}{x.c.s.d}
+
+# RANDOM #
+Operation{?}{}{0}{1}
+
+# Naturality of Discard (Random)# 
+Display{0}{
+	0.?;
+	0.d;
+}={}
+
+# Naturality of swap (Random)# 
+Assume{1}{
+	0.?; 
+	0.x;
+}={
+	1.?;
+}
+
+Assume{1}{
+	1.?; 
+	0.x;
+}={
+	0.?;
+}
+
+# Doubly encrypted #
+Example{1}{
+	0.?; 
+	0.c;
+	1.s;
+	2.?;
+	2.c; 
+	1.s;
+	1.s;
+	0.s;
+}={}
+
+# Symmetric Key Determinism# 
+Definition{2}{
+	0.s;
+	0.c;
+}
+======================
+{
+	0.c;
+	2.c;
+	1.x;
+	0.s;
+	1.s;
+}
+
+
+
+
+
+# Symmetric Key Privacy# 
+
+Assume{1}{
+	1.?; 
+	0.s;
+}={
+	0.d;
+	0.?;
+}
+
+Definition{1}{
+	0.?; 
+	0.s;
+}={
+	0.d;
+	0.?;
+}
+
+
+# Same key encryption # 
+Example{1}{
+	0.c;
+	1.?; 
+	1.c;
+	0.s;
+	1.s;
+}={
+	0.?;
+	1.d;
+	0.c;
+}
+
+Lemma{1}{	
+	0.?;
+	0.c;
+	1.s;
+	1.c;
+	0.s;
+}={	
+	1.?;
+}
+
+
+# Discarding encryption # 
+Definition{2}{
+	0.s;
+	0.d;
+}={
+	0.d;
+	0.d;
+}
+
+
+
+
+
+
