@@ -1,0 +1,100 @@
+# XOR calculus: using xor as primitive  #
+
+# Import the copy-discard category theory #
+import  theory/copy-discard
+
+# Main operations #
+op  r : 2 -> 1  [xor]
+op  0 : 0 -> 1  [0]
+
+Schema{naturality}{x.c}{r.0}
+Schema{naturality}{x.d}{r.0}
+
+note  {Let this be the XOR gate.}
+show  XOR-gate (2) {
+        0:r
+}
+
+def  XOR-associative (3) {
+        0:r, 0:r
+        =
+        1:r, 0:r
+}
+
+def  XOR-comm (2) {
+        0:x, 0:r
+        =
+        0:r
+}
+
+show  false (0) {
+        0:0
+}
+
+def  XOR-unital (1) {
+        0:0, 0:r
+        =
+        id
+}
+
+def  XOR-diagonal (1) {
+        0:c, 0:r
+        =
+        0:d, 0:0
+}
+
+lem  XOR-unital2 (1) {
+        1:0, 0:r
+        =
+        id
+}
+
+proof  (1) {
+        1:0, 0:[XOR-comm (2) {0:r = 0:x, 0:r}]
+        =
+        0:[SymU(x,0) (1) {1:0, 0:x = 0:0}], 0:r
+        =
+        0:[XOR-unital (1) {0:0, 0:r = id}]
+}
+
+lem  XOR-00 (0) {
+        0:0, 1:0, 0:r
+        =
+        0:0
+}
+
+lem  Lemma26 (2) {
+        0:c, 1:r, 0:r
+        =
+        0:d
+}
+
+proof  (2) {
+        0:c, 0:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}]
+        =
+        0:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 0:r
+        =
+        0:d, 0:[XOR-unital (1) {0:0, 0:r = id}]
+}
+
+example  Example28 (3) {
+        1:c, 0:r, 1:r, 0:r
+        =
+        1:d, 0:r
+}
+
+
+
+example  Example29 (2) {
+        0:c, 1:r, 1:c, 0:x, 1:r
+        =
+        1:c, 0:r
+}
+
+
+
+lem  Unnamed (2) {
+    0:c, 1:r, 1:c, 0:r
+    =
+    1:c, 0:x, 1:r
+}

@@ -1,0 +1,159 @@
+# Scalars #
+
+# We import bialgebra theory #
+Import{bialgebra}
+
+# We limit naturality properties, so we can show case more proofs of induction #
+Schema{naturality}{x.c}{x.c.d.b.e}
+Schema{naturality}{x.e}{x.c.d.b.e}
+Schema{naturality}{x.d}{x.c.d.b.e}
+Schema{naturality}{x.b}{x.c.d.b.e}
+
+# We introduce a scalar operation, with a parameter (designated with %) #
+# Parameters can contains any natural number polynomial as expression #
+Operation{t}{%i}{1}{1}
+
+# 0-scalar is defined as follows #
+def  0-scalar (1) {
+        0:t(0)
+        =
+        0:d, 0:b
+}
+
+# Succesor is defined using a capital letter X in the parameter. Capital letters work polymorphically.# 
+# However, matching equations polymorphically only happen for expressions of the form "X" or "X+3"#
+def  (+1)-scalar (1) {
+        0:t(1+X)
+        =
+        0:c, 0:t(X), 0:e
+}
+
+# Simple lemmas #
+lem  1-scalar (1) {
+        0:t(1)
+        =
+        id
+}
+lem  2-scalar (1) {
+        0:t(2)
+        =
+        0:c, 0:e
+}
+lem  (+1)-scalar2 (1) {
+        0:t(1+X)
+        =
+        0:c, 1:t(X), 0:e
+}
+
+
+# First proof by induction, the addition of scalars #
+# Induction is not handle internally, so we simply spell out the prerequisites as lemmas and add the conclusion afterwards #
+lem  s-add-Basis (1) {
+        0:c, 0:t(X), 1:t(0), 0:e
+        =
+        0:t(X)
+}
+
+# In order to define the induction hypothesis, we use a small letter "a" in the parameters #
+# This ensures it is not polymorphic in "a", nor that "a" can be further used #
+# Think of "a" as the fresh variable gotten from unfolding "For all a. P(a) => P(a+1)", with "P(a)" only holding for this particular "a"#
+def  s-add-Hypo (1) {
+        0:c, 0:t(X), 1:t(a), 0:e
+        =
+        0:t(X+a)
+}
+lem  s-add-Step (1) {
+        0:c, 0:t(X), 1:t(1+a), 0:e
+        =
+        0:t(1+X+a)
+}
+lem-hide  s-add (1) {
+        0:c, 0:t(X), 1:t(Y), 0:e
+        =
+        0:t(X+Y)
+}
+
+lem  s-discard-Basis (1) {
+        0:t(0), 0:d
+        =
+        0:d
+}
+def  s-discard-Hypo (1) {
+        0:t(a), 0:d
+        =
+        0:d
+}
+lem  s-discard-Step (1) {
+        0:t(1+a), 0:d
+        =
+        0:d
+}
+lem-hide  s-discard (1) {
+        0:t(X), 0:d
+        =
+        0:d
+}
+lem-hide  s-zero (0) {
+        0:b, 0:t(X)
+        =
+        0:b
+}
+
+
+lem  s-copy-Basis (1) {
+        0:t(0), 0:c
+        =
+        0:c, 0:t(0), 1:t(0)
+}
+def  s-copy-Hypo (1) {
+        0:t(a), 0:c
+        =
+        0:c, 0:t(a), 1:t(a)
+}
+lem  s-copy-Step (1) {
+        0:t(1+a), 0:c
+        =
+        0:c, 0:t(1+a), 1:t(1+a)
+}
+lem-hide  s-copy (1) {
+        0:t(X), 0:c
+        =
+        0:c, 0:t(X), 1:t(X)
+}
+lem-hide  s-sum (2) {
+        0:e, 0:t(X)
+        =
+        0:t(X), 1:t(X), 0:e
+}
+
+
+lem  s-times-Basis (1) {
+        0:t(X), 0:t(0)
+        =
+        0:t(0)
+}
+def  s-times-Hypo (1) {
+        0:t(X), 0:t(a)
+        =
+        0:t(Xa)
+}
+lem  s-times-Step (1) {
+        0:t(X), 0:t(1+a)
+        =
+        0:t(X+Xa)
+}
+def  s-times (1) {
+        0:t(X), 0:t(Y)
+        =
+        0:t(XY)
+}
+
+
+show  Polynomial (1) {
+        0:t(2c), 0:c, 0:t(5d), 1:t(ce), 0:e
+}
+
+show  6-scalar (1) {
+        0:t(6)
+}
+

@@ -1,0 +1,84 @@
+# XOR calculus: using xor as primitive  #
+
+# Import the copy-discard category theory #
+Import{priv/1-xor-base}
+
+# Main operations #
+op  1 : 0 -> 1  [0]
+op  n : 1 -> 1	[not]
+
+Schema{naturality}{x.c}{1.n}
+Schema{naturality}{x.d}{1.n}
+
+note {In this extension, we add the true unit}
+show  True (0) {
+        0:1
+}
+
+lem  Lemma30 (0) {
+        0:1, 1:1, 0:r
+        =
+        0:0
+}
+
+lem  Lemma31 (0) {
+        0:1, 1:0, 0:r
+        =
+        0:1
+}
+
+lem  Lemma32 (0) {
+        0:0, 1:1, 0:r
+        =
+        0:1
+}
+
+note {Using the true unit, we can define not gate}
+def  Not-gate (1) {
+        0:n
+        =
+        0:1, 0:r
+}
+
+lem  Lemma34 (0) {
+        0:0, 0:n
+        =
+        0:1
+}
+
+lem  Lemma35 (0) {
+        0:1, 0:n
+        =
+        0:0
+}
+
+note {We can prove that double not does nothing}
+lem  Double-Not (1) {
+        0:n, 0:n
+        =
+        id
+}
+
+lem  Lemma37 (1) {
+        0:n
+        =
+        1:1, 0:r
+}
+
+lem  Lemma38 (2) {
+        0:n, 0:r
+        =
+        0:r, 0:n
+}
+
+lem  Lemma39 (2) {
+        1:n, 0:r
+        =
+        0:r, 0:n
+}
+
+example  Example40 (0) {
+        0:1, 0:0, 0:c, 1:r, 1:c, 0:x, 1:r
+        =
+        0:1, 0:0, 1:c, 0:r
+}

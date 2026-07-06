@@ -1,0 +1,76 @@
+
+Import{priv/2-group-prob}
+Import{priv/3-base-leak}
+
+
+lem  Lemma57 (0) {
+        0:e, 0:q
+        >
+        id
+}
+
+lem  Lemma58 (0) {
+        0:b, 0:q
+        >
+        id
+}
+
+lem  Lemma59 (2) {
+        0:l, 1:l, 0:o
+        >
+        1:l, 0:o, 0:l
+}
+
+lem  Lemma60 (2) {
+        0:l, 1:l, 0:o
+        <
+        1:l, 0:o, 0:l
+}
+
+lem  Lemma62 (1) {
+        0:l, 0:n
+        >
+        0:n, 0:l
+}
+
+lem  Lemma63 (1) {
+        0:l, 0:n
+        <
+        0:n, 0:l
+}
+
+lem  Lemma64 (1) {
+        0:s, 0:l, 0:o
+        =
+        id
+}
+
+lem  Lemma66 (1) {
+        0:s, 0:l, 1:l
+        =
+        0:l, 0:s, 1:l
+}
+
+lem  Lemma68 (1) {
+        0:e, 0:s, 1:o, 1:l, 0:o
+        =
+        id
+}
+
+example  Example69 (1) {
+        0:e, 0:s, 1:o, 1:l, 0:s, 1:o, 1:l, 0:o
+        =
+        id
+}
+
+lem  Lemma70 (2) {
+        1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
+        <
+        0:c, 2:c, 1:o, 1:q
+}
+
+lem  Lemma71 (2) {
+        1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
+        >
+        0:c, 2:c, 1:o, 1:q
+}

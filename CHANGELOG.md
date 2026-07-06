@@ -6,3 +6,9 @@
 
 ## 0.4.1.0 -- February 2026
 
+* Second public version. 
+
+## 0.5.0.0 -- July 2026
+
+* Third public version. 
+

@@ -1,0 +1,74 @@
+# Part 2: Copy discard category #
+# Adds a copy operation to the theory of symmetry. #
+
+# Dependencies #
+Import{SGAI/1-cat-sym}
+
+# Operations #
+op  c : 1 -> 2 [2]
+op  d : 1 -> 0 [2]
+
+# ------------------------------------- #
+
+Name{Copy|Operation which copies resources}
+Play{1}{0.c;}
+
+# Copy: co-associativity #
+Name{Copy-assoc}
+Display{1}{0.c;0.c;}{0.c;1.c;}
+
+# Copy: co-commutativity #
+Name{Copy-comm}
+Display{1}{0.c;0.x;}{0.c;}
+
+Name{Copy-inter}
+Lemma{1}{0.c;0.c;2.c;1.x;}{0.c;0.c;2.c;}
+
+Trace{1}{
+0.{1}{Copy-assoc}{0.c;0.c;}={0.c;1.c;};2.c;1.x;
+|0.c;1.{1}{Copy-assoc}{0.c;1.c;}={0.c;0.c;};1.x;
+|0.c;1.c;1.{1}{Copy-comm}{0.c;0.x;}={0.c;};
+|0.c;1.{1}{Copy-assoc}{0.c;0.c;}={0.c;1.c;};
+|0.{1}{Copy-assoc}{0.c;1.c;}={0.c;0.c;};2.c;
+}
+
+Name{Discard|Operation which discards resources}
+Play{1}{0.d;}
+
+
+Name{Copy-unital}
+Definion{1}{0.c;0.d;}={}
+
+Name{Copy-unital2}
+Lemma{1}{0.c;1.d;}={}
+
+Trace{1}{
+0.{1}{Copy-comm}{0.c;}={0.c;0.x;};1.d;
+|0.c;0.{2}{SymD(x,d)}{0.x;1.d;}={0.d;};
+}
+
+Lemma{2}{0.x;0.c;1.x;}{1.c;0.x;}
+Vemma{2}{0.x;1.c;0.x;}{0.c;1.x;}
+
+Trace{2}{
+0.{2}{SymU(x,c)}{0.x;0.c;}={1.c;0.x;1.x;};1.x;
+|1.c;0.x;1.{2}{DoubleSwap}{0.x;0.x;}={};
+}
+
+# Naturality conditions #
+# {naturality}{x.c}{a} declares a is deterministic  #
+Schema{naturality}{x.c}{x.c.d}
+
+# {naturality}{x.d}{a} declares a is total #
+Schema{naturality}{x.d}{x.c.d}
+
+Example{2}{0.x;0.c;2.c;1.x;0.x;2.x;1.x;}{0.c;2.c;}
+
+Exercise{2}{0.c;2.c;1.x;1.c;3.c;0.x;2.x;4.x;1.x;3.x;0.x;2.x;4.x;}{0.c;2.c;1.x;1.c;3.c;}
+
+
+
+
+
+
+

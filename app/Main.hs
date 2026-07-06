@@ -1,6 +1,8 @@
 module Main where
 
-import Event
+--import Morph
+--import Par2
+import Gloss.Event
 --import Display 
 
 --import Graphics.Gloss
@@ -15,7 +17,7 @@ fullscreen = False
 
 -- Application is made in a 3:2 ratio. Set the height below, or ste to Nothing for autoscaling
 screenheight :: Maybe Int
-screenheight = Just 960
+screenheight = Nothing --Just 800
 
 
 main :: IO ()

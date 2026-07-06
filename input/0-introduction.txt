@@ -1,0 +1,79 @@
+# Introduction #
+
+note {Welcome to the Box of String tool. Here we give an introduction to how to use it. The main function of the tool is to interactively rewrite String diagrams. You are currently loaded into the "0-introduction" document, which contains a sequence of definitions of operation definitions, string diagrams and equations between them. It is currently showing the empty string diagram. Use the "Next" and "Back" button to navigate between "pages" of the document.}
+
+show  Welcome (0) {}
+
+op  f : 1 -> 1 
+op  g : 1 -> 2 
+op  h : 2 -> 1 
+
+
+note {Here you see an example of a String Diagram. You see two inputs on the left, and two outputs on the right. There are three different operations, which are applied in sequence. The order of operations does not matter, as long as the operations do not depend on each other. (1) Use the left-mouse button to drag and nudge either f or g, so the order changes. (2) Click and drag operations together, to collect them in a box. (3) Right-click on a box to extract its content and remove the box.}
+
+show String-Diagram (2) {
+	0:f, 1:g, 0:h
+}
+
+note {We are currently looking at an Axiom. That is, we are asserting that a certain equation holds, which you can see on the left. In particular, we are asserting that "g" followed by "h" is equal to "f". Since the equation has been asserted, we can apply it. (1) Use left-mouse button to drag both "g" and "h" together so they are collected in a box. (2) When hovering over the box, you should see possible rewrites on the righthand side of the screen. (3) Use the mouse-wheel, or the up/down arrow keys, to apply a rewrite. (4) Right-click when you have found the correct rewrite, to apply it, unfolding the box.}
+
+def  An-Axiom (1) {
+	0:g, 0:h
+	=
+	0:f
+}
+
+
+note {Here is another equation. Note that an equation can be applied in both directions.}
+
+def  Another-Axiom (1) {
+	0:g, 0:f, 1:f
+	=
+	0:f, 0:g
+}
+
+
+note {We are now looking at a Lemma. That is, we see on the left some equation, but this equation is not asserted. Instead, we should be able to prove the Lemma using the equations asserted beforehand. Please try it, once the screen turns green, you have succeeded. If you are stuck, you can also press the "Auto-Reduce" button on the right, and it will attempt to look for a rewrite to apply which simplifies the diagram.}
+
+lem  A-Lemma (1) {
+	0:g, 0:g, 2:f, 0:f, 1:f
+	=
+	0:f, 0:g, 0:g
+}
+
+note {Once a lemma is proven, it is added to the available equations. You can use it to prove the next Lemma. The left side of the screen shows a history of your applied rewrites. (1) Scroll, or use up/down arrows, to quickly move between states. (2) Click on the previous or next state to animate the applied rule. (3) Click above the previous, or below the next, to animate the full sequence of applied rules.}
+
+lem  Another-Lemma (1) {
+	0:g, 0:g, 2:f, 0:f, 1:f, 2:f, 0:h, 0:h
+	=
+	0:f, 0:f, 0:f
+}
+
+note {You can click on "Equations" to see all the equations available at this point (click to back out again), you can scroll through them if there are many. Click "Flip" if you want to change the orientation of the string diagram.}
+
+def  Return-of-Axiom (1) {
+	0:f, 0:f
+	=
+	id
+}
+
+note {To prove the following Lemma, click the circle on a string to create an identity box, which you can rewrite. Alternatively, sometimes it is easier to prove a Lemma backwards. Click the goal on the left to flip the equation, so you can do this.}
+
+lem  Lemma-again  (1) {
+	id
+	=
+	0:g, 0:g, 2:f, 0:h, 0:f, 0:h
+}
+
+note {The Show mode simply displays a string diagram, not an equation. Consider this large diagram. "Zoom" allows you to zoom into the string diagram in a box on a separate page. "Add Rel" adds the currently proven relation into the theory. So when reducing large diagrams, you can "Zoom", rewrite, "Add Rel", and then apply the added rewrite to the large diagram again.}
+
+show  Big-diagram (3) {
+    0:f, 1:g, 3:f, 1:f, 2:g, 0:h, 1:g, 3:f, 1:h, 1:h, 1:h
+}
+
+
+note {That is all for the basic functionality of the tool. Clicking "Next" now brings you to the editor, which allows you to add more operations, definitions/axioms, and lemmas. There; Scroll to add or remove strings, click on operation on the left to add it, you can then drag it around to hook it up to other strings. Click "Next" to toggle from Start state to Goal state of equation, and "Next" again to add the equation. Toggle between Definition and Lemma by clicking on the options on the right. Lastly, press any key which is not linked to an existing operation to add a new operation: you then have to enter two digits to specify number of input and output strings of the operation. Any added operations, definitions and lemmas will be automatically added to the file. If you want to create your own theory using this, simply load in an empty file.} 
+
+show  The-End (0) {}
+
+

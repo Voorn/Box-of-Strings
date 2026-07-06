@@ -1,0 +1,61 @@
+
+import theory/Frobenius
+
+op  f : 1 -> 1
+
+
+# relational order #
+
+def  rel-equal (2) {
+        0:e, 0:c
+        <
+        id
+}
+lem  rel-discard (1) {
+	id
+	<
+	0:d,0:b
+}
+def  rel-copy (1) {
+	id 
+	<
+	0:c,0:e
+}
+lem  rel-copy-inv (1) {
+	id 
+	<
+	0:c,0:e
+}
+
+# schemas #
+def  rel-nat-discard (1) {
+	0:f,0:d 
+	<
+	0:d
+}
+lem  rel-nat-exists (0) {
+	0:b,0:f
+	<
+	0:b
+}
+def  rel-nat-copy (1) {
+	0:f,0:c
+	<
+	0:c,0:f,1:f
+}
+lem  rel-nat-copy (2) {
+	0:e,0:f
+	<
+	0:f,1:f,0:e
+}
+
+L{1}{0.c;0.f;1.f;0.e;}<{0.f;}
+L{1}{0.c;0.f;1.f;0.e;}>{0.f;}
+
+
+
+schema  naturality<  {x,c} {}
+schema  naturality<  {x,d} {}
+schema  naturality>  {x,e} {}
+schema  naturality>  {x,b} {}
+

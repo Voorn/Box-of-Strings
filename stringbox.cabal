@@ -20,7 +20,7 @@ name:               stringbox
 -- PVP summary:     +-+------- breaking API changes
 --                  | | +----- non-breaking API additions
 --                  | | | +--- code changes with no API change
-version:            0.4.1.0
+version:            0.5.0.0
 
 -- A short (one-line) description of the package.
 synopsis: Tool for rewriting string diagrams using mouse controls
@@ -62,13 +62,29 @@ executable Box_of_Strings
     -- Modules included in this executable, other than Main.
     other-modules:    Morph, 
                       Rewrite, 
-                      World,
-                      Event, 
-                      Display, 
+                      Gloss.World,
+                      Gloss.Actions,
+                      Gloss.Event, 
+                      Gloss.Display, 
                       Parse,
                       Theory,
                       Par,
-                      SemanticFree
+                      Par2,
+                      Matcher,
+                      Write,
+                      SemanticFree,
+                      Proof,
+                      HyperMatch,
+                      Evaluation,
+                      SemanticInterpreterPoly,
+                      DSL.DSLClass,
+                      DSL.BooleanDSL,
+                      DSL.ProbCircDSL,
+                      DSL.ArithmeticDSL,
+                      DSL.StandardMonad,
+                      DSL.ProbabilisticMonad,
+                      Equivalence,
+                      CodeGen
     
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -76,7 +92,12 @@ executable Box_of_Strings
     -- Other library packages from which modules are imported.
     build-depends:    base,
                       gloss,
-                      directory
+                      directory,
+                      extra,
+                      containers,
+                      mtl,
+                      text,
+                      random
 
     -- Directories containing source files.
     hs-source-dirs:   app

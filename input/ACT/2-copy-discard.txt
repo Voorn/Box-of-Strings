@@ -1,0 +1,84 @@
+# Adds a copy operation to the theory of symmetry. #
+
+# Dependencies #
+import ACT/1-symmetry
+
+# Operations #
+op  c : 1 -> 2  [2]
+op  d : 1 -> 0  [2]
+
+
+# ------------------------------------- #
+
+note {Operation which copies resources}
+show Copy (1) {0:c}
+
+def Copy-associative (1) {0:c,0:c = 0:c,1:c}
+def Copy-commutative (1) {0:c,0:x = 0:c}
+
+lem Copy-interchange (1) {0:c,0:c,2:c,1:x = 0:c,0:c,2:c}
+
+proof  (1) {
+    0:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:c, 1:x
+    =
+    0:c, 1:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 1:x
+    =
+    0:c, 1:c, 1:[Copy-commutative (1) {0:c, 0:x = 0:c}]
+    =
+    0:c, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}]
+    =
+    0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 2:c
+}
+
+note {Operation which discards resources}
+show  Discard (1) {
+        0:d
+}
+
+def  Copy-unital (1) {
+        0:c, 0:d
+        =
+        id
+}
+
+lem  Copy-unital2 (1) {
+        0:c, 1:d
+        =
+        id
+}
+
+proof  (1) {
+        0:[Copy-commutative (1) {0:c = 0:c, 0:x}], 1:d
+        =
+        0:c, 0:[SymD(x,d) (2) {0:x, 1:d = 0:d}]
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}]
+}
+
+lem  Copy-wire-down (2) {
+        0:x, 0:c, 1:x
+        =
+        1:c, 0:x
+}
+
+proof  (2) {
+        0:[SymU(x,c) (2) {0:x, 0:c = 1:c, 0:x, 1:x}], 1:x
+        =
+        1:c, 0:x, 1:[DoubleSwap (2) {0:x, 0:x = id}]
+}
+
+lem-hide  Copy-wire-up (2) {
+        0:x, 1:c, 0:x
+        =
+        0:c, 1:x
+}
+
+# Neither are fully natural, we specify which operations are deterministic and total #
+# declare x,c,d are deterministic #
+schema naturality {x,c} {x,c,d}
+
+# declares x,c,d are total #
+schema naturality {x,d} {x,c,d}
+
+
+

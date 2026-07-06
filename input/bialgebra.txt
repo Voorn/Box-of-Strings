@@ -1,0 +1,28 @@
+# Bialgebra example #
+
+Import{theory/symmetry}
+
+
+Operation{c}{2}{1}{2}
+Operation{d}{2}{1}{0}
+Operation{e}{w}{2}{1}
+Operation{b}{w}{0}{1}
+
+Schema{naturality}{x.c}{}
+Schema{naturality}{x.d}{}
+Schema{naturality}{x.e}{}
+Schema{naturality}{x.b}{}
+Schema{mirror}{x.c.d.e.b}{x.e.b.c.d}
+
+# associative #
+D{3}{0.e;0.e;}={1.e;0.e;}
+
+# unital # 
+D{1}{0.b;0.e;}={}
+
+# commutative #
+D{2}{0.x;0.e;}={0.e;}
+
+L{1}{1.b;0.e;}={}
+
+Play{3}{0.e;0.e;0.c;1.c;}

@@ -1,0 +1,64 @@
+
+# BRAID theory, incomplete #
+
+op  x : 2 -> 2  [1]
+op  y : 2 -> 2  [4]
+
+op  u : 0 -> 2  [v]
+op  t : 2 -> 0  [v]
+
+schema  symmetry  {x} {}
+schema  symmetry  {y} {}
+
+
+def  Over-Under (2) {
+        0:x, 0:y
+        =
+        id
+}
+
+def  Under-Over (2) {
+        0:y, 0:x
+        =
+        id
+}
+
+def  Loop-Over (0) {
+        0:u, 0:x
+        =
+        0:u
+}
+
+def  Loop-Under (0) {
+        0:u, 0:y
+        =
+        0:u
+}
+
+
+def  Axiom7 (1) {
+        0:u, 1:t
+        =
+        id
+}
+
+
+lem  Lemma8 (1) {
+        0:u, 1:x, 0:t
+        =
+        id
+}
+
+
+lem  Lemma12 (1) {
+        0:u, 1:x, 0:y, 1:x, 0:t
+        =
+        1:u, 0:y, 0:x, 0:y, 1:t
+}
+
+
+example  Example13 (1) {
+        0:u, 1:x, 0:u, 1:x, 2:x, 1:y, 3:y, 0:t, 1:y, 0:t
+        =
+        id
+}

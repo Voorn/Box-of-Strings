@@ -19,11 +19,12 @@ Additional features: 		Anton Osvald Kuusk, Tallinn University of Technology
 How to run:
 ===========
 
-You can either find a build that works for your operating system, or make a build yourself.
+If you use Linux or Windows, you might want to try the precompiled binaries. If they do not work, you will need to compile yourself using Haskell.
 
 To run existing build:
-1) To run existing executable, make sure that the executable is in the same folder as the "input" folder.
-2) Execute the executable
+1) Find the Linux or Windows binary in the main folder.
+2) Run it, either by double clicking, or by navigating to it in a terminal and typing the name of the file.
+2b) In Windows, you might have to get a version of GLUT. A version is stored in the "freeGLUT" subfolder. Move it either next to the executable, or to some place in the system path. You can also try to compile a version of GLUT youself.
 3) You can pick a file to go through it. Before picking, you can resize the window, and scroll to zoom in and out.
 
 To make build:
@@ -38,10 +39,12 @@ Troubleshooting: There may be some issues related to packages and haskell versio
 How to use the tool:
 ====================
 
-There are two input schemas you can use, with different function:
+Parts of this may be outdated. Please find the quick "guide" in html format, in the "guide" subfolder, for easier reading and videos of how to use the tool.
 
-I) The mouse or touchpad: is used to manipulate the string diagram according to the existing rules.
-II) The keyboard: Is used to build and modify the string diagram, to make your own examples. Keyboard can only be used like this in the editor mode, which is automatically initiated upon reaching the end of a file.
+There are two modes: rewrite mode and edit mode.
+
+I) Rewrite Mode: Use mouse or touchpad to manipulate the string diagram according to the existing rules. If scrolling is an issue, you can use the up & down arrows instead.
+II) Edit Mode: Is used to build and modify the string diagram, to make your own definitions and lemmas. 
 
 Basically, as long as you use only the mouse, you are making legal/mathematically correct rewriting rules. The only exception being clicking on a preset on the left, which loads a different example.
 
@@ -62,27 +65,23 @@ THE MAIN MIDDLE SCREEN (WORKBENCH)
 
 2) Right click a composite node on the main screen to unfold its contents.
 
-3) Use the mouse wheel (or comparable functionality on touchpad) while hovering over a node to apply a rewrite. Available rewrites are displayed on the right
+3) Use the mouse wheel (or comparable functionality on touchpad) while hovering over a node to cycle through applicable rewrites. Available rewrites are displayed on the right
 
 So to apply a rewrite rule, click and drag a node to combine it into a composite node matching some equation in the theory. Scroll to rewrite the content of the composite node. Then right click to release the content of the rewritten composite node. If an equation already applies to a singular node, you can immediately scroll to rewrite.
 
 4) Click the tiny circle in the middle of a string to create an identity composite node for rewriting. Create multiple identity composite nodes and collide them to create identities of multiple wires.
 
-There are two functionailities not yet implemented, apologies:
-
-a) You cannot as of yet create a void composite node out of nothing, that is an identity on a monoidal unit.
-
-b) No control over location of Units and counits when applying interchange when dragging them around.
+5) Click anywhere else in the diagram to create an empty box.
 
 THE LEFT HISTORY BAR
 
-The left bar contains the goal of your current rewriting taks, and a history of the string diagrams you have rewritten.
+The left bar contains the goal of your current rewriting task, and a history of the string diagrams you have rewritten.
 
-The bar only displays 4-5 diagrams at a time. To look at the other diagrams, hover the mosue over the bar. If the mouse is at the top of the screen, it displays the top of the bar. If the mouse is at the bottom, it displays the bottom.
+The bar only displays 4-5 diagrams at a time. 
 
-1) Left clicking on a morphism in the bar will replace the morphism on the main screen with that morphism.
+1) Scroll when hovering over the left bar to quickly change between states. 
 
-2) Right clicking on a morphism in the bar will delete/remove it from the bar.
+2) Click on the previous or next state to animate transitioning between them.
 
 3) Adding to the history:
 Every time you unfold a composite node on the main screen, if the string diagram on the main screen does not contain any composite nodes, and if the string diagram is monoidally different from the top morphism in the bar, the morphism will be added to the top of the bar.
@@ -91,54 +90,20 @@ Every time you unfold a composite node on the main screen, if the string diagram
 The Keyboard: Typesetting a diagram
 -----------------------------------
 
-This mode automatically starts when you have gone through the whole file.
+If you reach the end of the file, you will open the in-tool editor. This allows you to add new operations, axioms and lemmas on the fly, and these will be added to the file (the additions can be edited or removed by opening the file with a text editor, see next part for more typesetting details).
 
-Using the keyboard, you can make crude modification to the string diagram on the main screen. If an action is not possible, nothing happens.
+Modifying the displayed diagram: Scroll to add or remove strings at the bottom. Click operations on the left, or type their corresponding letter on the keyboard, to add the operation to the diagram. Nothing will happen if there are not enough strings available. Click and drag operations to change their position, they will jump strings, unlike in rewrite mode (you may have to add more strings at the bottom to move an operation around another one). Right-click an operation to remove it from the diagram, this may fail if this leaves insufficient strings for the operations on the right.
 
-[Delete]      Remove the last node from the diagram
-[Down-arrow]  Move the last node of the diagram one position down
-[Up-arrow]    Move the last node of the diagram one position up
-[Right-arrow] Add string to the bottom of the diagram
-[Left-arrow]  Remove string from the bottom of the diagram
-[0-9]         Change number of input wires of last node in diagram to the number pressed
-[Alt]+[0-9]   Change number of output wires of last node in diagram to the number pressed
+Specifying rewrites: Click on the options on the right to shift between definition (axiom) and lemma. When you have finished typesetting the initial state of the rewrite, press next to go to the goal state. This will copy the current state, which you can now edit. If the goal state is kept equal to the starting state, the string diagram will be added as a Show-type.
 
-Pressing any remaining character, be it letter or symbol, will check the existing list of basic operations for one matching the symbol typed. It will add this operation. Some notes:
-- Change position, number of inputs and outputs using the buttons described above.
-- if multiple operations start with the same letter, one of them is selected and added. 
-- the same drawing style of the operation is used.
-- every node is associated a symbol, even if that symbol is not displayed. For instance, the swap operation is bound to 'x', and the bullet operations are likely bound to 'a'.
-- If a symbol typed not corresponding to any existing operation, then a unit with that name is added. Note however, that no equations are specificied for newly added operations.
+Adding operations: If you type a character on the keyboard not bound to any existing operation, you intiate adding a new operation. Specify by typing two digits the number of input strings and output strings respectively.
+
+The above only gives a crude but quick way of typesetting a theory, more details would need to be typed by hand. To create a new theory, create an empty text file and load it in.
 
 
 =====================
 Writing inputs files:
 =====================
-The file reader is still in flux, as more features are added.
-Main things that may change are:
-- Addition of types of relations, requiring more options
-- Parametrizing operation by numbers
-- Making objects variable dependent for schema definitions
-So, if you do use this tool to showcase your own examples, please keep the appropriate build.
-Examples from the repository will be updated to fit new reader rewuirements.
 
-General file reading principles:
-- Spaces, lineskips and tabs are completely ignored
-- Anything between two # symbols is ignored, so can be used as comment
-- Arguments of functions are put in between {} brackets.
-- Parsing happens by checking the next symbol not falling in the above categories. The symbol tells us what operation is being declared, and then an appropriate number of subsequent arguments dependent on the operation are read. Anything between the arguments outside the {} brackets, or between the invoking symbol and the first argument, is ignored. So if the invoking symbol is "D", you can freely write "Definition" or "Display", or even "Define(Unitality Law)" to give more information. Parsing the rest of the file continues right after the last argument.
-
-Different functions:
-I - "Import", needs to be used at the start of the file. Has one argument "I{file}"; reads an entirely different file using the name given in "file", and extracts all the rewrites from it without displaying the D, L or E options. This is to build off other theories. Imports are iterative, so only Import the last file in a chain. Repeat imports are fine. Cyclical imports should be avoided.
-O - "Operation" adds an operation to the signature of operations. Has four arguments: "O{c}{s}{i}{o}"; the key character name c, the display style s, the number of input wires i, and number of output wires o.
-A - "Assume"/"Axiom" adds a rewrite rule to the theory. Has three arguments "A{i}{s}{g}"; the number of input wires i for both the starting morphism and goal morphism, the starting morphism of operations s, the ending morphism of the operation g. 
-D - "Define"/"Display", same as "A", but moreover puts the rewrite rule on the workbench display, so it is shown to user who can apply the rule to see what it looks like.
-L - "Lemma", same as "D", except that it adds the rewrite rule after the user has been displayed on the workbench. So the user can try to prove the lemma without having access to it (Note, too many lemmas may get in the way of convenience, which is why we have the next option).
-E - "Example"/"Exercise", same as "L", but the rewrite rule is never added. So the user can try and prove the rewrite rule, but will not get the rule afterwards.
-S - "Schema", hase three argument "S{name}{l}{r}", the name of the schema, the list l of arguments for the schema, and the list r of possible substitutions into the schema. If r is left empty, as {}, then schema applies to all operations. Schemas cannot refer to any operations not yet added, and adding the same schema with the same arguments will overwrite the r (e.g. you can limit a schema after importing it, if it should not apply to new operations in the theory)
-
-Defining morphisms:
-Morphisms are defined using a sequence of the following: "i.c;", that is a number "i" and a character "c", separated by a dot "." and closed with a semicolon ";". The "c" is the character associated to the relevant operation, which must have been added beforehand (either in the same file or imported). The "i" is a number, which can be multiple characters but likely is not, designating how many wires are "skipped". So supposing the object at the moment is "n", and the number of input wires for operation "c" is "j", then "i.c;" is akin to composing the morphism build up to this point with "id_i x c x id_{n-i-j}". You just ensure yourself that "i+j" does not exceed "n".
-When generating a morphism, some starting number of wires is used, and then for each "i.c;" in the sequence an operation is added as specified above. Nothing after the final ";" is parsed, nor anything between "c" and the ";", nor anything beyond the initial sequence of numbers in "i" before the ".".
-
+See the guide for more details.
 

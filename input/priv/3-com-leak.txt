@@ -1,0 +1,163 @@
+
+import  priv/2-com-prob
+import  priv/3-base-leak
+
+
+lem  Neutral-leak (0) {
+        0:e, 0:q
+        >
+        id
+}
+
+lem  Random-leak (0) {
+        0:b, 0:q
+        >
+        id
+}
+
+lem  Op-leak-1 (2) {
+        0:l, 1:l, 0:o
+        >
+        1:l, 0:o, 0:l
+}
+proof  (2) {
+        0:l, 1:[Double-Leak (1) {0:l = 0:l, 0:l}], 0:o
+        =
+        1:l, 1:l, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:o
+        =
+        1:l, 1:l, 0:c, 1:[SymD(x,q) (2) {0:q = 0:x, 1:q}], 0:o
+        =
+        1:l, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:c, 1:x, 2:q, 0:o
+        =
+        1:l, 1:c, 0:c, 1:x, 2:[Dist(x,q,o) (2) {0:q, 0:q > 0:o, 0:q}], 0:o
+        =
+        1:l, 0:[Dist(x,c,o) (2) {0:c, 2:c, 1:x, 0:o, 1:o = 0:o, 0:c}], 1:q
+        =
+        1:l, 0:o, 0:[Leaky-identity (1) {0:c, 1:q = 0:l}]
+}
+
+lem  Op-leak-2 (2) {
+        0:l, 1:l, 0:o
+        <
+        1:l, 0:o, 0:l
+}
+proof  (2) {
+        1:[Double-Leak (1) {0:l = 0:l, 0:l}], 0:o, 0:l
+        =
+        1:l, 1:l, 0:o, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        1:l, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:o, 0:c, 1:q
+        =
+        1:l, 1:c, 2:[Dist(x,q,n) (1) {0:q > 0:n, 0:q}], 0:o, 0:c, 1:q
+        =
+        1:l, 1:c, 2:n, 0:o, 0:c, 1:[Dist(x,q,o) (2) {0:q, 0:q > 0:o, 0:q}]
+        =
+        1:l, 1:c, 2:n, 0:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 1:o, 1:q
+        =
+        1:l, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 3:n, 0:c, 1:x, 0:o, 1:o, 1:o, 1:q
+        =
+        1:l, 1:c, 2:c, 3:n, 0:c, 1:x, 0:o, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 1:q
+        =
+        1:l, 1:c, 0:c, 1:x, 0:o, 2:[Group-inverse2 (1) {0:c, 1:n, 0:o = 0:d, 0:e}], 1:o, 1:q
+        =
+        1:l, 1:c, 0:c, 1:x, 0:o, 2:d, 1:[Group-unital2 (1) {1:e, 0:o = id}], 1:q
+        =
+        1:l, 1:[Copy-unital2 (1) {0:c, 1:d = id}], 0:c, 1:x, 0:o, 1:q
+        =
+        1:l, 0:c, 1:[SymD(x,q) (2) {0:x, 1:q = 0:q}], 0:o
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 1:l, 0:o
+}
+
+lem  Op-leak-3 (2) {
+        0:l, 1:l, 0:o
+        =
+        0:l, 0:o, 0:l
+}
+
+proof  (2) {
+        0:l, 1:l, 0:[Group-commutative (2) {0:o = 0:x, 0:o}]
+        =
+        1:l, 0:[SymD(x,l) (2) {0:l, 0:x = 0:x, 1:l}], 0:o
+        =
+        0:[SymU(x,l) (2) {1:l, 0:x = 0:x, 0:l}], 1:l, 0:o
+        =
+        0:x, 0:[{Op-leak-2<>Op-leak-1} (2) {0:l, 1:l, 0:o = 1:l, 0:o, 0:l}]
+        =
+        0:[SymD(x,l) (2) {0:x, 1:l = 0:l, 0:x}], 0:o, 0:l
+        =
+        0:l, 0:[Group-commutative (2) {0:x, 0:o = 0:o}], 0:l
+}
+
+
+lem  Not-leak-1 (1) {
+        0:l, 0:n
+        >
+        0:n, 0:l
+}
+
+lem  Not-leak-2 (1) {
+        0:l, 0:n
+        <
+        0:n, 0:l
+}
+
+lem  Bubble-leak (1) {
+        0:s, 1:l, 0:o
+        =
+        id
+}
+proof  (1) {
+        0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 1:l, 0:o
+        =
+        0:b, 0:c, 0:n, 1:o, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:o
+        =
+        0:b, 0:c, 0:n, 1:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 2:q, 0:o
+        =
+        0:b, 0:c, 0:n, 1:c, 3:c, 2:x, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 1:o, 1:q
+        =
+        0:b, 0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 0:n, 3:c, 2:x, 0:o, 0:o, 1:o, 1:q
+        =
+        0:b, 0:c, 2:c, 1:x, 2:o, 2:q, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 0:o
+        =
+        0:b, 1:c, 0:e, 1:[Copy-unital (1) {0:c, 0:d = id}], 1:x, 2:o, 2:q, 0:o
+        =
+        0:b, 1:c, 0:x, 1:o, 1:q, 0:[Group-unital (1) {0:e, 0:o = id}]
+        =
+        0:c, 0:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 1:o, 1:q
+        =
+        0:c, 1:[Scramble (1) {0:b, 0:o = 0:d, 0:b}], 1:q
+        =
+        0:c, 1:d, 1:[{Random-leak<>Dist(x,q,b)} (0) {0:b, 0:q = id}]
+        =
+        0:[Copy-unital2 (1) {0:c, 1:d = id}]
+}
+
+lem  Split-leak-1 (1) {
+        0:s, 0:l, 1:l
+        =
+        0:l, 0:s, 1:l
+}
+lem-hide  Split-leak-1 (1) {
+        0:s, 0:l, 1:l
+        =
+        0:l, 0:s, 0:l
+}
+
+lem  One-Time-Pad (1) {
+        0:e, 0:s, 1:o, 1:l, 0:o
+        =
+        id
+}
+
+lem  OTP-twice< (2) {
+        1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
+        <
+        0:c, 2:c, 1:o, 1:q
+}
+
+lem  OTP-twice> (2) {
+        1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
+        >
+        0:c, 2:c, 1:o, 1:q
+}

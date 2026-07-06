@@ -1,0 +1,103 @@
+# Layer 0 part I: We assume that the order of resources can be changed #
+# Theory of symmetric monoidal categories using swap operation. Adds general schema for symmetry near the end #
+
+# Swap Operation #
+op  x : 2 -> 2 [1]
+
+note {This is the theory of symmetric monoidal categories, which is based on the swap operation 'x'. This represents the swapping between two neighbouring resources.}
+
+show Swap (2) {0:x}
+
+
+# Double swap #
+note {Swapping two resources twice will put them in the original position. Hence we axiomatize that a swap cancels itself out.}
+
+def  DoubleSwap (2) {
+	0:x,
+	0:x
+	=
+	id
+}
+
+
+# Yang-Baxter #
+note {There are two simple ways in which resources can be swapped while there is another resource in between them. We equate these two ways since the result is the same.}
+
+def  Yang-Baxter (3) {
+	0:x, 1:x, 0:x
+	=
+	1:x, 0:x, 1:x
+}
+
+lem  Flop (3) { 
+	0:x, 1:x, 0:x, 1:x
+	=
+	1:x, 0:x
+}
+
+proof (3) {
+	0:[Yang-Baxter (3) {0:x,1:x,0:x = 1:x,0:x,1:x}], 1:x
+	=
+	1:x, 0:x, 1:[DoubleSwap (2) {0:x,0:x = id}]
+}
+
+lem-hide  Flap (3) { 
+	1:x, 0:x, 1:x, 0:x
+	=
+	0:x, 1:x
+}
+
+
+# Weaver's Lemma #
+lem  Weavers-lemma (3) {
+	1:x, 0:x, 1:x, 0:x, 1:x, 0:x
+	=
+	id
+}
+
+proof  (3) {
+    1:x, 0:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}], 1:x, 0:x
+    =
+    1:[DoubleSwap (2) {0:x, 0:x = id}], 0:x, 1:x, 1:x, 0:x
+    =
+    0:x, 1:[DoubleSwap (2) {0:x, 0:x = id}], 0:x
+    =
+    0:[DoubleSwap (2) {0:x, 0:x = id}]
+}
+
+
+lem-hide  Weavers-lemma2 (3) {
+	0:x, 1:x, 0:x, 1:x, 0:x, 1:x
+	=
+	id
+}
+
+# First Exercise #
+example Exercise-1 (4) {
+	1:x, 0:x, 2:x, 1:x, 0:x, 2:x, 1:x 
+	=
+	0:x, 2:x, 1:x, 0:x, 2:x
+}
+
+proof  (4) {
+    1:x, 2:x, 0:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}], 2:x, 1:x
+    =
+    1:x, 2:x, 1:x, 0:x, 1:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}]
+    =
+    1:[Lemma3 (3) {0:x, 1:x, 0:x, 1:x = 1:x, 0:x}], 0:x, 1:x, 2:x
+    =
+    2:x, 0:[Yang-Baxter (3) {1:x, 0:x, 1:x = 0:x, 1:x, 0:x}], 2:x
+}
+
+schema symmetry {x} {}
+
+note {Any morphism can be dragged across a string. Collect the first 4 swaps into a single box, and "stamp" it with the middle mouse button. This creates a new morphism, with equations added for the symmetric monoidal theory schema.}
+
+example  Multiflip (6) {
+	0:x, 1:x, 2:x, 3:x, 4:x, 3:x, 2:x, 1:x, 0:x 
+	=
+	4:x, 3:x, 2:x, 1:x, 0:x, 1:x, 2:x, 3:x, 4:x
+}
+
+
+

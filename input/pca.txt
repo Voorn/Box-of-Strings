@@ -1,0 +1,51 @@
+Import{theory/cartesian}
+
+
+Operation{o}{}{2}{1}
+Operation{k}{}{0}{1}
+Definition{2}{
+	0.k;
+	0.o;
+	0.o;
+}{
+	1.d;
+}
+Operation{s}{}{0}{1}
+Definition{3}{
+	0.s;
+	0.o;
+	0.o;
+	0.o;
+}{
+	2.c;
+	1.x;
+	0.o;
+	1.o;
+	0.o;
+}
+Operation{i}{}{0}{1}
+
+Definition{0}{
+	0.i;
+}{
+	0.k;
+	0.s;
+	2.k;
+	0.o;
+	0.o;
+}
+Lemma{1}{
+	0.i;
+	0.o;
+}{
+}
+
+Lemma{2}{
+	0.k;
+	1.i;
+	0.o;
+	0.o;
+	0.o;
+}{
+	0.d;
+}

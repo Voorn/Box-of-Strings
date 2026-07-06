@@ -1,6 +1,9 @@
 {-# LANGUAGE InstanceSigs #-}
 module Morph where
 
+import Matcher
+
+-- S
 
 -- Extended libraries
 
@@ -16,6 +19,11 @@ wirerat = 1
 -- ===========================================================================
 -- Utility functions for convenience (may be replaced basic library functions)
 -- ===========================================================================
+
+uptoBar :: String -> String
+uptoBar [] = []
+uptoBar ('|' : _) = []
+uptoBar (c : l) = c : uptoBar l
 
 
 tryAny :: (a -> Maybe b) -> [a] -> Maybe b
@@ -83,6 +91,24 @@ lookupSig c ((Sig d s i o) : sig)
     |   c == d      =   Just (Sig d s i o)
     |   otherwise   =   lookupSig c sig
 
+lookList :: Int -> a -> [a] -> a
+lookList _ a [] = a
+lookList i _ (b : l)
+    |   i <= 0      =   b
+    |   otherwise   =   lookList (i-1) b l
+
+lookupList :: Int -> [a] -> Maybe a
+lookupList _ [] = Nothing
+lookupList i (a : l)
+    |   i <= 0      =   Just a
+    |   otherwise   =   lookupList (i-1) l
+
+updateList :: Int -> a -> [a] -> [a]
+updateList _ _ [] = []
+updateList i a (b : l)
+    |   i == 0      =   a : l
+    |   otherwise   =   b : updateList (i-1) a l
+
 
 -- Fractions datat type: as alternative to floating numbers
 type Frac = (Int , Int)
@@ -99,7 +125,7 @@ frac2Float (a , b) = fromIntegral a / fromIntegral b
 type Object = Int
 
 -- Drawing styles for operations, simply with names now. May replace by datatype later
-type Style = String
+type Style = (Maybe Exp , String)
 
 -- The signature datatype: describing the signature of a basic atomic operation
 -- Char: the key binding character for type setting and storing. Functions as the name (yes, each operation should be bound to a different character)
@@ -115,6 +141,7 @@ data Sig =
 data Oper =
     Base Sig
     |   Comp Rew Morph
+    |   Func String Morph
     deriving (Eq , Ord)
 
 -- Morphisms data type: Either an identity morphism used as starting point, or another morphism composed with an operation
@@ -126,9 +153,13 @@ data Morph =
 
 -- Rewrite state 
 data Rew =
-    RI Morph            -- Same as start, categorical equality
-    |   RS MR Morph     -- Rewrite with rule into
-    deriving (Eq , Ord)
+    RI Morph                    -- Same as start, categorical equality
+    |   RS MR Morph String Why  -- Rewrite with rule into
+    deriving (Eq , Ord , Show)
+
+isAxiom' :: Rew -> Bool
+isAxiom' (RI _) = True
+isAxiom' (RS _ _ _ w) = isAxiom w
 
 -- Rewrite rule type: the new state is equal/larger/smaller than the former
 data MR =
@@ -137,11 +168,18 @@ data MR =
     |   MSmaller
     deriving (Eq , Show , Ord)
 
+rewText :: Rew -> String
+rewText (RS _ _ s _) = s
+rewText _ = ""
+
+nameSig :: Sig -> Char
+nameSig (Sig c _ _ _) = c
+
 -- Utility functions for rewrites
-firstRew :: [Rew] -> Morph 
-firstRew [] = Start 0 
+firstRew :: [Rew] -> Morph
+firstRew [] = Start 0
 firstRew (RI m : _) = m
-firstRew (RS _ m : _) = m
+firstRew (RS _ m _ _ : _) = m
 
 tailList :: [a] -> [a]
 tailList [] = []
@@ -149,10 +187,10 @@ tailList (_ : l) = l
 
 reverseRew :: Rew -> Rew
 reverseRew (RI m)   = RI m
-reverseRew (RS x m) = RS (reverseMR x) m
+reverseRew (RS x m s w) = RS (reverseMR x) m s w
 
 reverseHis :: [Rew] -> [Rew]
-reverseHis (RI m : RS x n : l) = RS (reverseMR x) m : reverseHis (RI n : l)
+reverseHis (RI m : RS x n s w : l) = RS (reverseMR x) m s w : reverseHis (RI n : l)
 reverseHis l = l
 
 reverseSih :: [Rew] -> [Rew]
@@ -160,21 +198,35 @@ reverseSih his = reverse (reverseHis (reverse his))
 
 rewMorph :: Rew -> Morph
 rewMorph (RI m) = m
-rewMorph (RS _ m) = m
+rewMorph (RS _ m _ _) = m
 
 rewSub :: Rew -> Morph -> Rew
 rewSub (RI _) m = RI m
-rewSub (RS x _) m = RS x m
+rewSub (RS x _ s w) m = RS x m s w
+
+data Why =
+    Axiom
+    |   Lemma
+    |   Show
+--    |   Schema Why
+    deriving (Eq , Ord , Show)
+
+isAxiom :: Why -> Bool
+isAxiom Axiom = True
+isAxiom _ = False
 
 -- The relation/rewrite rule datatype: Two morphisms with an associated relation type
-type Relat = (MR , Morph , Morph)
+type Relat = (MR , Morph , Morph , String , Why)
+
+baseRelat :: Relat
+baseRelat = (MEqual , Start 0 , Start 0 , "" , Show)
 
 -- remove trivial relations
 remRelat :: [Relat] -> [Relat]
 remRelat [] = []
-remRelat ((e , m , n) : l) 
+remRelat ((e , m , n , t , w) : l)
     |   m == n      =   remRelat l
-    |   otherwise   =   (e , m , n) : remRelat l
+    |   otherwise   =   (e , m , n , t , w) : remRelat l
 
 -- ============================
 -- Morphism auxiliary functions
@@ -182,33 +234,46 @@ remRelat ((e , m , n) : l)
 
 -- safe mode: a rewrite is not progress
 safeMorph :: Morph -> Bool
-safeMorph (Start _) = True 
-safeMorph (Op m _ (Base _)) = safeMorph m 
+safeMorph (Start _) = True
+safeMorph (Op m _ (Base _)) = safeMorph m
 safeMorph (Op m _ (Comp (RI _) _)) = safeMorph m
-safeMorph (Op _ _ (Comp (RS _ _) _)) = False
+safeMorph (Op _ _ (Comp (RS {}) _)) = False
+safeMorph (Op m _ (Func _ n)) = safeMorph m && safeMorph n
 
 -- apply mode: we can apply rewrite to morphis
 countMorph :: Morph -> Int
 countMorph (Start _) = 0
-countMorph (Op m _ (Base _)) = countMorph m 
+countMorph (Op m _ (Base _)) = countMorph m
 countMorph (Op m _ (Comp _ _)) = 1 + countMorph m
+countMorph (Op m _ (Func _ n)) = countMorph m + countMorph n
 
-relatWrap :: MR -> Morph -> Morph -> Relat 
-relatWrap x m n = (x , m , n)
+relatWrap :: MR -> Morph -> Morph -> String -> Why -> Relat
+relatWrap x m n t w = (x , m , n , t , w)
 
 reverseMR :: MR -> MR
 reverseMR MEqual = MEqual
 reverseMR MLarger = MSmaller
 reverseMR MSmaller = MLarger
 
+joinMRunsafe :: MR -> MR -> MR
+joinMRunsafe MEqual y   = y
+joinMRunsafe x MEqual   = x
+joinMRunsafe x _        = x
+
 relatMR :: Relat -> MR
-relatMR (m , _ , _) = m
+relatMR (m , _ , _ , _ , _) = m
 
 startRelat :: Relat -> Morph
-startRelat (_ , m , _) = m
+startRelat (_ , m , _ , _ , _) = m
 
 goalRelat :: Relat -> Morph
-goalRelat (_ , _ , n) = n
+goalRelat (_ , _ , n , _ , _) = n
+
+nameRelat :: Relat -> String
+nameRelat (_ , _ , _ , t , _) = t
+
+whyRelat :: Relat -> Why
+whyRelat (_ , _ , _ , _ , w) = w
 
 orderMorph :: Morph -> Morph -> Bool
 orderMorph (Start o)        (Start o')          =   o <= o'
@@ -221,11 +286,13 @@ orderMorph (Op m i o)       (Op m' i' o')
     |   o > o'      =   False
     |   otherwise   =   orderMorph m m'
 
+
+
 instance Ord Morph where
     (<=) :: Morph -> Morph -> Bool
     m <= m'
         |   bulkMorph m == bulkMorph m' =   orderMorph m m'
-        |   otherwise                       =   bulkMorph m <= bulkMorph m'
+        |   otherwise                   =   bulkMorph m <= bulkMorph m'
 
 -- ==================
 -- Printing morphisms
@@ -233,8 +300,10 @@ instance Ord Morph where
 
 instance Show Oper where
     show :: Oper -> String
-    show (Base (Sig c t i o))   =   c : t ++ ":" ++ show i ++ "->" ++ show o
+    show (Base (Sig c (Nothing , t) i o))   =   c : t ++ ":" ++ show i ++ "->" ++ show o
+    show (Base (Sig c (Just e , t) i o))   =   c : '(' : show e ++ ')' : t ++ ":" ++ show i ++ "->" ++ show o
     show (Comp m _)             =   show (rewMorph m)
+    show (Func c m)             =   c ++ "[" ++ show m ++ "]"
 
 showm :: Morph -> String
 showm (Start _) = ""
@@ -251,6 +320,9 @@ layerPrintOper :: Int -> Int -> Oper -> [String]
 layerPrintOper i j (Base (Sig c _ a b)) = [show i ++ " | " ++ c : ":" ++ show a ++ "->" ++ show b ++ " | " ++ show j]
 layerPrintOper i j (Comp m _)           = let (im , om) = typeMorph (rewMorph m) in
     (show i ++ " | [-]:" ++ show im ++ "->" ++ show om ++ " | " ++ show j) : fmap ("    " ++ ) (layerPrintMorph (rewMorph m))
+layerPrintOper i j (Func c m)           = let (im , om) = typeMorph m in
+    (show i ++ " | " ++ c ++ "[-]:" ++ show im ++ "->" ++ show om ++ " | " ++ show j) : fmap ("    " ++ ) (layerPrintMorph m)
+
 
 layerPrintMorph :: Morph -> [String]
 layerPrintMorph (Start _) = []
@@ -323,32 +395,56 @@ takeV i (a : l)
     |   i <= 0      =   a
     |   otherwise   =   takeV (i-1) l
 
+varname :: Int -> Char
+varname i = lookList i '-' "abcdefghijklmnopqrstuvwxyz"
+
+varlist :: [Int] -> String
+varlist l = '(' : varlist' l
+
+varlist' :: [Int] -> String
+varlist' [] = ")"
+varlist' [i] = varname i : ")"
+varlist' (i : l) = varname i : ',' : varlist' l
+
 -- Initiating multiline print
 printMorphI :: Morph -> String
 printMorphI m = let (a , _) = typeMorph m in
-    "M" ++ show [0 .. a-1] ++ ":"
-    ++ printMorphE "  " [0 .. a-1] a m
+    "F" ++ varlist [0 .. a-1] ++ ":"
+    ++ printMorphE " " [0 .. a-1] a m
 
 -- Printing multiple lines using list of variable names 
 printMorph :: String -> [Int] -> Int -> Morph -> (String , [Int] , Int)
 printMorph _ v fs (Start _) = ("" , v , fs)
-printMorph s v fs (Op m i (Base (Sig 'x' "1" 2 2))) =
+printMorph s v fs (Op m i (Base (Sig 'x' (Nothing ,"1") 2 2))) =
     let (q , w , fs2) = printMorph s v fs m in
         (q , swapV i w , fs2)
-printMorph s v fs (Op m i (Base (Sig 'c' "2" 1 2))) =
+printMorph s v fs (Op m i (Base (Sig 'c' (Nothing , "2") 1 2))) =
     let (q , w , fs2) = printMorph s v fs m in
         (q , copyV i w , fs2)
-printMorph s v fs (Op m i (Base (Sig 'd' "2" 1 0))) =
+printMorph s v fs (Op m i (Base (Sig 'd' (Nothing , "2") 1 0))) =
     let (q , w , fs2) = printMorph s v fs m in
         (q , discardV i w , fs2)
-printMorph s v fs (Op m i (Base (Sig 'l' "" 1 1))) =
+printMorph s v fs (Op m i (Base (Sig 'l' (Nothing , "leak") 1 1))) =
     let (q , w , fs2) = printMorph s v fs m in
-        (q ++ "\n" ++ s ++ "l(" ++ show (takeV i w) ++ ")" , w , fs2)
+        (q ++ "\n" ++ s ++ "leak" ++ varlist [takeV i w] , w , fs2)
+printMorph s v fs (Op m i (Base (Sig 'q' (Nothing , "leak") 1 0))) =
+    let (q , w , fs2) = printMorph s v fs m in
+        (q ++ "\n" ++ s ++ "leak" ++ varlist [takeV i w] , discardV i w , fs2)
+printMorph s v fs (Op m i (Base (Sig 'r' _ a b))) =
+    let (q , w , fs2) = printMorph s v fs m in
+    let f = [fs2 .. (fs2+b-1)] in
+    let (x , y) = repL i a w f in
+        (q ++ "\n" ++ s ++ varlist f ++ " <- xor" ++ varlist x , y , fs2+b)
+printMorph s v fs (Op m i (Base (Sig '?' _ a b))) =
+    let (q , w , fs2) = printMorph s v fs m in
+    let f = [fs2 .. (fs2+b-1)] in
+    let (x , y) = repL i a w f in
+        (q ++ "\n" ++ s ++ varlist f ++ " <- k" ++ varlist x , y , fs2+b)
 printMorph s v fs (Op m i (Base (Sig c _ a b))) =
     let (q , w , fs2) = printMorph s v fs m in
     let f = [fs2 .. (fs2+b-1)] in
     let (x , y) = repL i a w f in
-        (q ++ "\n" ++ s ++ show f ++ " := " ++ c : show x , y , fs2+b)
+        (q ++ "\n" ++ s ++ varlist f ++ " <- " ++ c : varlist x , y , fs2+b)
 printMorph s v fs (Op m i (Comp n _)) =
     let (ms , mv , fs2) = printMorph s v fs m in
     let (a , b) = typeMorph (rewMorph n) in
@@ -356,12 +452,21 @@ printMorph s v fs (Op m i (Comp n _)) =
     let (ns , nv , fs3) = printMorph ("  " ++ s) x fs2 (rewMorph n) in
     let f = [fs3 .. (fs3+b-1)] in
     let (_ , y) = repL i a mv f in
-        (ms ++ "\n" ++ s ++ show f ++ " <-" ++ ns ++ "\n" ++ s ++ "  return " ++ show nv , y , fs3+b)
+        (ms ++ "\n" ++ s ++ varlist f ++ " <-" ++ ns ++ "\n" ++ s ++ "  return" ++ varlist nv , y , fs3+b)
+printMorph s v fs (Op m i (Func c n)) =
+    let (ms , mv , fs2) = printMorph s v fs m in
+    let (a , b) = typeMorph n in
+    let (x , _) = takeL i a mv in
+    let (ns , nv , fs3) = printMorph ("  " ++ s) x fs2 n in
+    let f = [fs3 .. (fs3+b-1)] in
+    let (_ , y) = repL i a mv f in
+        (ms ++ "\n" ++ s ++ show f ++ " <-" ++ c ++ "-" ++ ns ++ "\n" ++ s ++ "  return" ++ varlist nv , y , fs3+b)
+
 --printMorph _ _ _ _ = ("" , [] , 0)
 
 printMorphE :: String -> [Int] -> Int -> Morph -> String
 printMorphE s v fs m = let (q , w , _) = printMorph s v fs m in
-    q ++ "\n" ++ s ++ "return " ++ show w
+    q ++ "\n" ++ s ++ "return" ++ varlist w
 
 
 -- ======================================
@@ -375,6 +480,7 @@ isOp (Op m i o) = Just (i , o , m)
 typeOper :: Oper -> (Object , Object)
 typeOper (Base (Sig _ _ i o)) = (i , o)
 typeOper (Comp m _) = typeMorph (rewMorph m)
+typeOper (Func _ m) = typeMorph m
 
 typeMorph :: Morph -> (Object , Object)
 typeMorph (Start o) = (o , o)
@@ -397,7 +503,7 @@ bulkMorph (Op m _ o) = let (x , y) = typeOper o in 1 + x + y + bulkMorph m
 reduceMorph :: Morph -> Morph -> Bool
 reduceMorph m n = bulkMorph n < bulkMorph m
 
--- checks if the next two Option are independent
+-- checks if the next two Options are independent
 squeezeMorph :: Morph -> Bool
 squeezeMorph (Op (Op _ j p) i o ) =
     let (ii , _) = typeOper o in
@@ -405,23 +511,45 @@ squeezeMorph (Op (Op _ j p) i o ) =
         ((j + jo) <= i || (i + ii) <= j) && (i /= j || ii /= 0 || jo /= 0)
 squeezeMorph _ = False
 
+squeezerMorph :: Morph -> Maybe (Int , Int , Int , Int)
+squeezerMorph (Op (Op _ j p) i o ) =
+    let (ii , io) = typeOper o in
+    let (ji , jo) = typeOper p in
+    if ((j + jo) <= i) && (i /= j || ii /= 0 || jo /= 0) 
+    then 
+        Just (ji - jo , 0 , 0 , io - ii)
+    else 
+    if ((i + ii) <= j) && (i /= j || ii /= 0 || jo /= 0)  
+    then
+        Just (0 , ji - jo , io - ii , 0)  
+    else 
+        Nothing 
+squeezerMorph _ = Nothing
+
 -- size with squeezes
-sizeMorph :: Morph -> Float
-sizeMorph (Start _) = wirerat
-sizeMorph (Op m i o) = if squeezeMorph (Op m i o) then sizeOper o + sizeMorph m else wirerat + sizeOper o + sizeMorph m
+--sizeMorph :: Morph -> Float
+--sizeMorph (Start _) = wirerat
+--sizeMorph (Op m i o) = if squeezeMorph (Op m i o) then sizeOper o + sizeMorph m else wirerat + sizeOper o + sizeMorph m
 
 -- size without sequeezes
-sizeMorph' :: Morph -> Float
-sizeMorph' (Start _) = wirerat
-sizeMorph' (Op m _ o) = wirerat + sizeOper o + sizeMorph' m
+--sizeMorph' :: Morph -> Float
+--sizeMorph' (Start _) = wirerat
+--sizeMorph' (Op m _ o) = wirerat + sizeOper o + sizeMorph' m
+
+sizeMorph'' :: Morph -> Float
+sizeMorph'' (Start _) = wirerat
+sizeMorph'' (Op m p o) = wirerat + sizeOper o + sizeMorph'' m - (if squeezeMorph (Op m p o) then wirerat else 0)
 
 sizeOper :: Oper -> Float
 sizeOper (Base {}) = 1
-sizeOper (Comp _ _) = 2 + wirerat
+sizeOper (Comp _ m) = 1 + wirerat + 0.1 * sizeMorph'' m
+--sizeOper (Comp {}) = 2 + wirerat
+sizeOper (Func _ m) = 0.7 * sizeMorph'' m -- + wirerat
 
 -- Basic coordinates of nodes in morphism
 coorMorph :: Morph -> [(Float , Float)]
-coorMorph m = coorMorph' wirerat (sizeMorph m) m
+coorMorph m = coorMorphAlt' wirerat (sizeMorph'' m) m (0 , 0)
+    --coorMorph' wirerat (sizeMorph'' m) m
 
 coorMorph' :: Float -> Float -> Morph -> [(Float , Float)]
 coorMorph' _ _ (Start _) = []
@@ -436,6 +564,29 @@ coorMorph' posx width (Op m i o) =
     let y = frac2Float (2 + 4*i + bi + bo , 4 - 2*bi + 2*bo + 4*mo) in
         ((x , y) : coorm)
 
+coorMorphAlt' :: Float -> Float -> Morph -> (Int , Int) -> [(Float , Float)]
+coorMorphAlt' _ _ (Start _) _ = []
+coorMorphAlt' posx width (Op m i o) (dx , dy) =
+    let c = sizeOper o in
+    case squeezerMorph (Op m i o) of
+    Just (di , dr , dj , dl) ->
+        let (_ , mo) = typeMorph m in
+        let (bi , bo) = typeOper o in
+        let coorm = coorMorphAlt' (posx+c) width m (dj , dl) in
+        let x = 1 - ((posx + c/2) / width) in
+        let y = frac2Float (2 + 4*i + bi + bo       + (di + dx) ,                 -- 2 + 4*i + (bi + bo) 
+                            4 + 4*mo - 2*bi + 2*bo  + (di + dr + dx + dy)) in    -- 2 + 4*i + (bi + bo) + (bi + bo) + 4*j + 2 = 4 + 4*m - 2*bi + 2*bo
+        ((x , y) : coorm)                                       -- m = i + bi + j
+    Nothing ->
+        let coorm = coorMorphAlt' (posx+c+wirerat) width m (0 , 0) in
+        let (_ , mo) = typeMorph m in
+        let (bi , bo) = typeOper o in
+        let x = 1 - ((posx + c/2) / width) in
+        let y = frac2Float (2 + 4*i + bi + bo       + dx , 
+                            4 + 4*mo - 2*bi + 2*bo  + (dx + dy)) in
+        ((x , y) : coorm)
+    --let squ = squeezeMorph (Op m i o) in
+    --let nexx = if squ then posx+c else posx+c+wirerat in
 
 -- ===================================
 -- Theoretical Options on Morphisms
@@ -464,17 +615,27 @@ mergeMorph (i , m) (j , n) =
 operMorph :: Oper -> Morph
 operMorph (Base (Sig f s i o)) = Op (Start i) 0 (Base (Sig f s i o))
 operMorph (Comp m _) = rewMorph m
+operMorph (Func c m) = let (mi , _) = typeMorph m in  Op (Start mi) 0 (Func c m)
 
 mergeOper  :: (Int , Oper) -> (Int , Oper) -> (Int , Oper)
 mergeOper (i , o) (j , p) =
     let (k , q) = mergeMorph (i , operMorph o) (j , operMorph p) in
-    let m = knayMorph (insertSort q) in (k , Comp (RI m) m)
+    let m = cleanMorph q in (k , Comp (RI m) m)
 
 checkMerge :: Morph -> Maybe Morph
-checkMerge (Op _ _ (Comp (RS _ _) _)) = Nothing
-checkMerge (Op (Op _ _ (Comp (RS _ _) _)) _ _) = Nothing
+checkMerge (Op _ _ (Comp (RS {}) _)) = Nothing
+checkMerge (Op (Op _ _ (Comp (RS {}) _)) _ _) = Nothing
 checkMerge (Op (Op m j p) i o) = let (k , q) = mergeOper (i , o) (j , p) in Just (Op m k q)
 checkMerge _ = Nothing
+
+mergeIndex :: Morph -> Int -> Maybe Morph
+mergeIndex (Start _) _              =   Nothing
+mergeIndex (Op (Start _) _ _) _     =   Nothing
+mergeIndex (Op (Op m a op) b qp) i
+    |   i <= 0      =   let (c , n) = mergeMorph (b , operMorph qp) (a , operMorph op) in
+                        Just (Op m c (Comp (RI n) n))
+    |   otherwise   =   mergeIndex (Op m a op) (i-1) >>= \n -> Just (Op n b qp)
+
 
 -- Rewrite: 
 rewriteNode :: (Rew -> Morph -> Rew) -> (Float , Float) -> Float -> Morph -> [(Float , Float , Bool)] -> Morph
@@ -483,7 +644,7 @@ rewriteNode _ _ _ (Op i o m) [] = Op i o m
 rewriteNode f (mx , my) bs (Op m i o) ((x , y , _) : r)
     |   abs (mx-x) <= 2*bs && abs (my-y) <= 2*bs   =  case o of
             Comp n nh           ->  Op m i (Comp (f n nh) nh)
-            Base (Sig g s a b)  ->  let n = Op (Start a) 0 (Base (Sig g s a b)) in
+            op                  ->  let n = operMorph op  in
                                     let p = f (RI n) n in Op m i (Comp p n)
     |   otherwise   =   let n = rewriteNode f (mx , my) bs m r in Op n i o
 
@@ -491,15 +652,52 @@ morphOps :: Morph -> [Sig]
 morphOps (Start _) = []
 morphOps (Op m _ (Base s)) = addSet s (morphOps m)
 morphOps (Op m _ (Comp n _)) = joinSet (morphOps (rewMorph n)) (morphOps m)
+morphOps (Op m _ (Func _ n)) = joinSet (morphOps n) (morphOps m)
 
--- Checks if there are boxes in the morphism
+-- Checks if there are comp boxes in the morphism
 flatMorph :: Morph -> Bool
 flatMorph (Start _) = True
 flatMorph (Op m _ (Base {})) = flatMorph m
 flatMorph (Op _ _ (Comp _ _)) = False
+flatMorph (Op m _ (Func _ n)) = flatMorph m && flatMorph n
 
 eqMorph :: Morph -> Morph -> Bool
+eqMorph m n = cleanMorph m == cleanMorph n
 eqMorph m n = insertSort m == insertSort n
+
+-- unfolders 
+unfoldPreMorph :: Morph -> Morph
+unfoldPreMorph m =
+    let (a , _) = typeMorph m in
+        unfoldPreMorph' (Start a) m 0
+
+unfoldPreMorph' :: Morph -> Morph -> Int -> Morph
+unfoldPreMorph' m (Start _) _ = m
+unfoldPreMorph' m (Op n j (Base (Sig c s a b))) i =
+    Op (unfoldPreMorph' m n i) (i + j) (Base (Sig c s a b))
+unfoldPreMorph' m (Op n j (Comp _ k)) i =
+    unfoldPreMorph' (unfoldPreMorph' m n i) k (i + j)
+unfoldPreMorph' m _ _ = m
+
+unfoldPostMorph :: Morph -> Morph
+unfoldPostMorph m =
+    let (a , _) = typeMorph m in
+        unfoldPostMorph' (Start a) m 0
+
+unfoldPostMorph' :: Morph -> Morph -> Int -> Morph
+unfoldPostMorph' m (Start _) _ = m
+unfoldPostMorph' m (Op n j (Base (Sig c s a b))) i =
+    Op (unfoldPostMorph' m n i) (i + j) (Base (Sig c s a b))
+unfoldPostMorph' m (Op n j (Comp (RS _ k _ _) _)) i =
+    unfoldPreMorph' (unfoldPostMorph' m n i) k (i + j)
+unfoldPostMorph' m (Op n j (Comp (RI k) _)) i =
+    unfoldPreMorph' (unfoldPostMorph' m n i) k (i + j)
+unfoldPostMorph' m _ _ = m
+
+unfoldInfo :: Morph -> (MR , String , Why)
+unfoldInfo (Start _) = (MEqual , "?" , Axiom)
+unfoldInfo (Op _ _ (Comp (RS mr _ name why) _)) = (mr , name  , why)
+unfoldInfo (Op n _ _) = unfoldInfo n
 
 -- 
 sapMorph :: Morph -> [a] -> [(Morph , [a])]
@@ -596,10 +794,32 @@ anyred2 a b = tryAny (\(x , y , z) -> marSubMorph x y z) [(m , s , n) | (m , _) 
 anyredFull :: Float -> Morph -> [(Float , Float , Bool)] -> [[Morph]] -> Maybe (Morph , [(Float , Float , Bool)])
 anyredFull s m loc eq = anyred m loc eq >>= \n -> Just (n , [(s * a , s * b , False) | (a , b) <- coorMorph n])
 
+-- ============
+-- NEW
+addredrule :: Ord a => (a -> a -> Bool) -> (a , a) -> [(a , a)] -> [(a , a)]
+addredrule _ (x , y) [] = [(x , y)]
+addredrule f (x , y) ((z , w) : l)
+    |   x < z       =   (x , y) : (z , w) : l
+    |   x > z       =   (z , w) : addredrule f (x , y) l
+    |   f w y       =   (x , y) : l
+    |   otherwise   =   (z , w) : l
+
+allredrule :: Ord a => (a -> a -> Bool) -> [[a]] -> [(a , a)]
+allredrule _ [] = []
+allredrule f ([] : l) = allredrule f l
+allredrule f ((a : r) : l) = allredrule' f r a l
+
+allredrule' :: Ord a => (a -> a -> Bool) -> [a] -> a -> [[a]] -> [(a , a)]
+allredrule' f [] _ l = allredrule f l
+allredrule' f (a : r) b l
+    |   f a b       =   addredrule f (a , b) (allredrule' f r b l)
+    |   otherwise   =   allredrule' f r b l
+
+
 -- ===========================
 -- Sorting nodes in a morphism
 -- ===========================
-cleanMorph :: Morph -> Morph 
+cleanMorph :: Morph -> Morph
 cleanMorph m = knayMorph (insertSort m)
 
 insertSort :: Morph -> Morph
@@ -611,8 +831,104 @@ insertSort' (Op (Op n j p) i o) = let (io , oo) = typeOper o in
     if (i + io) <= j then Op (insertSort' (Op n i o)) (j - io + oo) p else Op (Op n j p) i o
 insertSort' m = m
 
-sortRelat :: Relat -> Relat
-sortRelat (x , m , n) = (x , insertSort m , insertSort n)
+
+-- keep sorting and remember 
+keepIndex :: Int -> Morph -> [Int]
+keepIndex _ (Start _) = []
+keepIndex i (Op m _ _) = keepIndex (i+1) m ++ [i]
+
+-- we use a counter to prevent diverging algorithms
+keepSorting :: Morph -> (Morph , [Int])
+keepSorting m =
+    let v = lengthMorph m in
+    let ind = keepIndex 0 m in
+    keepSort (v * v) m ind (m , ind)
+
+keepSort :: Int -> Morph -> [Int] -> (Morph , [Int]) -> (Morph , [Int])
+keepSort i m l reco
+    |   i <= 0      =   reco
+    |   otherwise   =   case keepSort' m l reco of
+            Just (reco' , n , r)    ->  keepSort (i-1) n r reco'
+            Nothing ->  reco
+
+keepSort' :: Morph -> [Int] -> (Morph , [Int]) -> Maybe ((Morph , [Int]) , Morph , [Int])
+keepSort' (Op (Op m j p) i o) (a : b : l) (recm , recp) =
+    let (io , oo) = typeOper o in
+    if (i + io) <= j
+    then
+        case keepSort' (Op m i o) (a : l) (Op m i o , a : l) of
+            Just ((x , y) , n , r)  ->  let (newm , newl) = (Op n (j - io + oo) p , b : r) in
+                                        let (newx , newy) = (Op x (j - io + oo) p , b : y) in
+                                        if not (orderMorph newx recm) then Just ((newx , newy) , newm , newl)
+                                        else Just ((recm , recp) , newm , newl)
+            Nothing                 ->  let (newm , newl) = (Op (Op m i o) (j - io + oo) p , b : a : l) in
+                                        if not (orderMorph newm recm) then Just ((newm , newl) , newm , newl)
+                                        else Just ((recm , recp) , newm , newl)
+    else keepSort' (Op m j p) (b : l) (Op m j p , b : l) >>= \((x , y) , m' , l') ->
+                                        let (newm , newl) = (Op m' i o , a : l') in
+                                        let (newx , newy) = (Op x i o , a : y) in
+                                        if not (orderMorph newx recm) then Just ((newx , newy) , newm , newl)
+                                        else Just ((recm , recp) , newm , newl)
+keepSort' _ _ _ = Nothing
+
+
+-- we need allsort: but whatever
+
+addMall :: (Morph , [Int]) -> [(Morph , [Int])] -> Maybe [(Morph , [Int])]
+addMall (m , l) [] = Just [(m , l)]
+addMall (m , l) ((n , r) : p)
+    |   m == n          =   Nothing
+    |   orderMorph n m  =   Just ((m , l) : (n , r) : p)
+    |   otherwise       =   fmap ((n , r) :) (addMall (m , l) p)
+
+addMalls :: [(Morph , [Int])] -> [(Morph , [Int])] -> ([(Morph , [Int])] , [(Morph , [Int])])
+addMalls [] his = ([] , his)
+addMalls ((m , l) : p) his =
+    let (p' , his') = addMalls p his in
+    case addMall (m , l) his' of
+        Just his''  ->  ((m , l) : p' , his'')
+        Nothing     ->  (p' , his')
+
+
+interMall :: Morph -> [Int] -> [(Morph , [Int])]
+interMall (Op (Op m j p) i o) (a : b : l) =
+    let reco = interMall (Op m j p) (b : l) in
+    let reco' = fmap (\(x , y) -> (Op x i o , a : y)) reco in
+    let (io , oo) = typeOper o in
+    if (i + io) <= j    then (Op (Op m i o) (j - io + oo) p , b : a : l) : reco'
+                        else    reco'
+interMall _ _ = []
+
+tryMall :: Int -> [(Morph , [Int])] -> [(Morph , [Int])] -> [(Morph , [Int])]
+tryMall _ [] his = his
+tryMall i ((m , l) : new) his 
+    |   i <= 0      =   his
+    |   otherwise   = 
+        let gog = interMall m l in
+        -- if no interchanges possible, m is in normal form, and we are done
+        if null gog then [(m , l)] else
+        let (x , his') = addMalls gog his in
+            tryMall (i-1) (x ++ new) his'
+
+sortMall :: Morph -> (Morph , [Int])
+sortMall m =
+    let v = lengthMorph m in
+    let l = keepIndex 0 m in
+    let reco = tryMall (v * v) [(m , l)] [(m , l)] in
+    case reco of
+        (w : _)     ->  w
+        _           ->  (m , l)
+
+--allSort :: [(Morph , [Int])] -> [(Morph , [Int])] -> [(Morph , [Int])]
+
+
+--keepSorting :: Morph -> [Int] -> (Morph , [Int])
+
+--sortRelat :: Relat -> Relat
+--sortRelat (x , m , n , t) = (x , insertSort m , insertSort n , t)
+
+cleanRelat :: Relat -> Relat
+cleanRelat (x , m , n , t , w) = (x , cleanMorph m , cleanMorph n , t , w)
 
 -- =======================================================
 -- Reordering operation to be better spread out vertically
@@ -631,43 +947,268 @@ listMorph (Op m i o) = let (j , l) = listMorph m in (j , l ++ [(i , o)])
 buildMorph :: LMorph -> Morph
 buildMorph (i , l) = buildMorph' (Start i) l
 
-buildMorph' :: Morph -> [(Object , Oper)] -> Morph 
+buildMorph' :: Morph -> [(Object , Oper)] -> Morph
 buildMorph' m [] = m
 buildMorph' m ((i , o) : l) = buildMorph' (Op m i o) l
 
 -- Finding the next operation connected to a particular wire. Checks if that operation can be put in front
 layerKnay :: Int -> Int -> [(Object , Oper)] -> Maybe (Oper , [(Object , Oper)])
 layerKnay _ _ [] = Nothing
-layerKnay h i ((j , o) : l) 
-    |   i == j && fst (typeOper o) > 0          
+layerKnay h i ((j , o) : l)
+    |   i == j && fst (typeOper o) > 0
                         =   Just (o , l)
-    |   i >= h          =   Nothing 
-    |   i < j           =   let (io , oo) = typeOper o in 
-                            layerKnay (h-io+oo) i l >>= \(q , r) -> 
-                            let (iq , oq) = typeOper q in 
+    |   i >= h          =   Nothing
+    |   i < j           =   let (io , oo) = typeOper o in
+                            layerKnay (h-io+oo) i l >>= \(q , r) ->
+                            let (iq , oq) = typeOper q in
                             if (i + iq) > j then Nothing else Just (q , (j-iq+oq , o) : r)
-    |   otherwise       =   let (io , oo) = typeOper o in 
-                            if i < (j + io) then Nothing else 
-                            layerKnay (h-io+oo) (i-io+oo) l >>= \(q , r) -> 
+    |   otherwise       =   let (io , oo) = typeOper o in
+                            if i < (j + io) then Nothing else
+                            layerKnay (h-io+oo) (i-io+oo) l >>= \(q , r) ->
                             Just (q , (j , o) : r)
 
 -- Reorders operations 
 layersKnay :: Int -> Int -> Bool -> [(Object , Oper)] -> [(Object , Oper)]
 layersKnay _ _ _ [] = []
-layersKnay h i k ((j , o) : l) = 
-    case layerKnay h i ((j , o) : l) of 
-        Just (q , r)    ->  let (iq , oq) = typeOper q in 
+layersKnay h i k ((j , o) : l) =
+    case layerKnay h i ((j , o) : l) of
+        Just (q , r)    ->  let (iq , oq) = typeOper q in
                             (i , q) : layersKnay (h-iq+oq) (i+oq) True r
-        Nothing         ->  let (io , oo) = typeOper o in 
-                            if i >= h then 
-                                if k then layersKnay h 0 False ((j , o) : l) 
+        Nothing         ->  let (io , oo) = typeOper o in
+                            if i >= h then
+                                if k then layersKnay h 0 False ((j , o) : l)
                                 else (j , o) : layersKnay (h-io+oo) (i+oo) True l
                             else layersKnay h (i+1) k ((j , o) : l)
 
-knay :: LMorph -> LMorph 
+knay :: LMorph -> LMorph
 knay (i , l) = (i , layersKnay i 0 False l)
 
-knayMorph :: Morph -> Morph 
+knayMorph :: Morph -> Morph
 knayMorph m = buildMorph (knay (listMorph m))
 
 
+-- remember knay
+knayMorphRem :: Morph -> (Morph , [Int])
+knayMorphRem m =
+    let (i , v) = listMorph m in
+    let l = foldRem 0 v in
+    let r = layersKnayRem i 0 False l in
+    let p = (i , fmap (\(x , y , _) -> (x , y)) r) in
+    let c = splitRem r in
+        (buildMorph p , c)
+
+foldRem :: Int -> [(Object , Oper)]-> [(Object , Oper , Int)]
+foldRem _ [] = []
+foldRem a ((j , o) : l) = (j , o , a) : foldRem (a+1) l
+
+splitRem :: [(Object , Oper , Int)] -> [Int]
+splitRem [] = []
+splitRem ((_ , _ , a) : l) = a : splitRem l
+
+layersKnayRem :: Int -> Int -> Bool -> [(Object , Oper , Int)] -> [(Object , Oper , Int)]
+layersKnayRem _ _ _ [] = []
+layersKnayRem h i k ((j , o , a) : l) =
+    case layerKnayRem h i ((j , o , a) : l) of
+        Just ((q , b) , r)
+                        ->  let (iq , oq) = typeOper q in
+                            (i , q , b) : layersKnayRem (h-iq+oq) (i+oq) True r
+        Nothing         ->  let (io , oo) = typeOper o in
+                            if i >= h then
+                                if k then layersKnayRem h 0 False ((j , o , a) : l)
+                                else (j , o , a) : layersKnayRem (h-io+oo) (i+oo) True l
+                            else layersKnayRem h (i+1) k ((j , o , a) : l)
+
+layerKnayRem :: Int -> Int -> [(Object , Oper , Int)] -> Maybe ((Oper , Int) , [(Object , Oper , Int)])
+layerKnayRem _ _ [] = Nothing
+layerKnayRem h i ((j , o , a) : l)
+    |   i == j && fst (typeOper o) > 0
+                        =   Just ((o , a) , l)
+    |   i >= h          =   Nothing
+    |   i < j           =   let (io , oo) = typeOper o in
+                            layerKnayRem (h-io+oo) i l >>= \((q , b) , r) ->
+                            let (iq , oq) = typeOper q in
+                            if (i + iq) > j then Nothing else Just ((q , b) , (j-iq+oq , o , a) : r)
+    |   otherwise       =   let (io , oo) = typeOper o in
+                            if i < (j + io) then Nothing else
+                            layerKnayRem (h-io+oo) (i-io+oo) l >>= \((q , b) , r) ->
+                            Just ((q , b) , (j , o , a) : r)
+
+-- =====================
+-- Schematic alterations
+-- =====================
+
+lookupDict :: Ord a => [(a , b)] -> a -> Maybe b
+lookupDict [] _ = Nothing
+lookupDict ((a , b) : l) a'
+    |   a' < a      =   Nothing
+    |   a' == a     =   Just b
+    |   otherwise   =   lookupDict l a'
+
+lookupDictU :: Ord a => b -> [(a , b)] -> a -> b
+lookupDictU b l a = case lookupDict l a of
+    Just b'     ->  b'
+    _           ->  b
+
+updateDict :: Ord a => [(a , b)] -> (a , b) -> [(a , b)]
+updateDict [] (a , b) = [(a , b)]
+updateDict ((a , b) : l) (a' , b')
+    |   a' < a      =   (a' , b') : (a , b) : l
+    |   a' == a     =   (a' , b') : l
+    |   otherwise   =   (a , b) : updateDict l (a' , b')
+
+updatesDict :: Ord a => [(a , b)] -> [(a , b)] -> [(a , b)]
+updatesDict l r = foldl updateDict r l
+
+cleanDict ::  Ord a => [(a , b)] -> [(a , b)]
+cleanDict [] = []
+cleanDict (x : l) = updateDict (cleanDict l) x
+
+mergeDict :: Ord a => [(a , b)] -> [(a , b)] -> [(a , b)]
+mergeDict [] r = r
+mergeDict l [] = l
+mergeDict ((a , b) : l) ((a' , b') : r)
+    |   a' < a      =   (a' , b') : mergeDict l ((a' , b') : r)
+    |   a' > a      =   (a , b) : mergeDict ((a , b) : l) r
+    |   otherwise   =   (a , b) : mergeDict l r
+
+-- Toggle Move 
+toggleMorph :: [(Sig, Sig)] -> Morph -> Maybe Morph
+toggleMorph _ (Start i) = Just (Start i)
+toggleMorph dict (Op m i (Base s)) =
+    toggleMorph dict m >>= \m' ->
+    lookupDict dict s >>= \s' ->
+        Just (Op m' i (Base s'))
+toggleMorph _ _ = Nothing
+
+toggleRelat ::  [(Sig , Sig)] -> Relat -> Maybe Relat
+toggleRelat dict (e , m , n , s , w) =
+    toggleMorph dict m >>= \m' ->
+    toggleMorph dict n >>= \n' ->
+        Just (e , m' , n' , "T(" ++ uptoBar s ++ ")" , w)
+
+-- Flipping morphism upside down 
+flipMorph :: [(Sig , Sig)] -> Morph -> Maybe (Morph , Int)
+flipMorph _ (Start i) = Just (Start i , i)
+flipMorph dict (Op m i (Base s)) =
+    flipMorph dict m >>= \(m' , j) ->
+    lookupDict dict s >>= \s' ->
+    let Sig _ _ inp out = s' in
+        Just (Op m' (j - i - inp) (Base s') , j - inp + out)
+flipMorph _ _ = Nothing
+
+flipRelat ::  [(Sig , Sig)] -> Relat -> Maybe Relat
+flipRelat dict (e , m , n , s , w) =
+    flipMorph dict m >>= \(m' , _) ->
+    flipMorph dict n >>= \(n' , _) ->
+        Just (e , m' , n' , "F(" ++ uptoBar s ++ ")" , w)
+
+mapLMorph :: [(Sig , Sig)] -> [(Object , Oper)] -> Maybe [(Object , Oper)]
+mapLMorph _ [] = Just []
+mapLMorph dict ((i , Base s) : l) =
+    lookupDict dict s >>= \s' ->
+    fmap ((i , Base s') :) (mapLMorph dict l)
+mapLMorph _ _ = Nothing
+
+mirrorMorph :: [(Sig , Sig)] -> Morph -> Maybe Morph
+mirrorMorph dict m =
+    let (_ , mo) = typeMorph m in
+    let (_ , lis) = listMorph m in
+    mapLMorph dict lis >>= \lis' ->
+        Just (buildMorph (mo , reverse lis'))
+
+mirrorRelat ::  [(Sig , Sig)] -> Relat -> Maybe Relat
+mirrorRelat dict (e , m , n , s , w) =
+    mirrorMorph dict m >>= \m' ->
+    mirrorMorph dict n >>= \n' ->
+        Just (e , m' , n' , "M(" ++ uptoBar s ++ ")" , w)
+
+lastbox :: Morph -> Morph -> Morph
+lastbox m (Start _) = m
+lastbox _ (Op _ _ (Comp _ k)) = k
+lastbox m (Op n _ _) = lastbox m n
+
+boxIt :: Morph -> Morph
+boxIt m = let (i , _) = typeMorph m in Op (Start i) 0 (Comp (RI m) m)
+
+functify :: Morph -> Morph
+functify (Start i) = Start i
+functify (Op m i (Comp _ x)) = Op (functify m) i (Func "I" x)
+functify (Op m i op) = Op (functify m) i op
+
+
+matchOp :: Oper -> Oper -> Maybe [(Char, Exp)]
+matchOp (Base (Sig nam (Nothing , _) a b)) (Base (Sig nam' (Nothing , _) a' b'))
+    |   nam == nam' && a == a' && b == b'   =   Just []
+matchOp (Base (Sig nam (Just ex , _) a b)) (Base (Sig nam' (Just ex' , _) a' b'))
+    |   nam == nam' && a == a' && b == b'   =   matchExp ex ex'
+matchOp _ _ = Nothing
+
+matchaMorph :: Morph -> Morph -> Maybe [(Char, Exp)]
+matchaMorph (Start i) (Start j)
+    |   i == j      =   Just []
+    |   otherwise   =   Nothing
+matchaMorph (Start _) _ = Nothing
+matchaMorph _ (Start _) = Nothing
+matchaMorph (Op m i op) (Op n j qp)
+    |   i == j  =   matchOp op qp >>= \l -> matchaMorph m n >>= \r -> addSubsts l r
+    |   otherwise   =   Nothing
+
+substOp :: Oper -> [(Char, Exp)] -> Maybe Oper
+substOp (Base (Sig nam (Nothing , style) a b)) _ = Just (Base (Sig nam (Nothing , style) a b))
+substOp (Base (Sig nam (Just ex , style) a b)) sub = substExp ex sub >>= \ex' -> Just (Base (Sig nam (Just ex' , style) a b))
+substOp _ _ = Nothing
+
+substMorph :: Morph -> [(Char, Exp)] -> Maybe Morph
+substMorph (Start i) _ = Just (Start i)
+substMorph (Op m i op) sub = substOp op sub >>= \op' -> substMorph m sub >>= \m' -> Just (Op m' i op')
+
+matcherMorph :: Morph -> Morph -> Maybe (Morph -> Maybe Morph)
+matcherMorph m n = matchaMorph m n >>= \sub -> Just (`substMorph` sub)
+
+
+opinMorph :: Char -> Morph -> Bool
+opinMorph _ (Start _) = False
+opinMorph c (Op m _ (Base (Sig d _ _ _))) = c == d || opinMorph c m
+opinMorph c (Op m _ (Comp _ n)) = opinMorph c n || opinMorph c m
+opinMorph c (Op m _ (Func _ n)) = opinMorph c n || opinMorph c m
+
+
+typeMatch :: Morph -> Morph -> Bool
+typeMatch m n = typeMorph m == typeMorph n
+
+checkMorph :: Morph -> Maybe Int
+checkMorph (Start i) = return i
+checkMorph (Op m i op) =
+    checkMorph m >>= \mo ->
+    let (a , b) = typeOper op in
+    if (i+a) <= mo then Just (mo-a+b) else Nothing
+
+
+bringWire :: Morph -> Int -> Int -> Morph
+bringWire m i j
+    |   i > j       =   bringWire (Op m (i-1) (Base (Sig 'x' (Nothing , "1") 2 2))) (i-1) j
+    |   otherwise   =   m
+
+copyWires :: Morph -> Int -> Int -> Int -> Morph
+copyWires m i j k
+    |   i <= j      =   copyWires (bringWire (Op m i (Base (Sig 'c' (Nothing , "2") 1 2))) i k) (i+2) (j+1) (k+1)
+    |   otherwise   =   m
+
+deleteWires :: Morph -> Int -> Int -> Morph
+deleteWires m i j
+    |   i < j       =   deleteWires (Op m i (Base (Sig 'd' (Nothing , "2") 1 0))) i (j-1)
+    |   otherwise   =   m
+
+copyMorph :: Morph -> Morph
+copyMorph m =
+    let (cm , ca) = (copyMorph' m) in
+    let (_ , mo) = typeMorph m in
+        deleteWires cm ca (ca + mo)
+
+copyMorph' :: Morph -> (Morph , Int)
+copyMorph' (Start a) = (copyWires (Start a) 0 (a-1) 0 , a)
+copyMorph' (Op m i o) =
+--   let (_ , mo) = typeMorph m in 
+   let (_ , oo) = typeOper o in
+   let (cm , ca) = copyMorph' m in
+       (copyWires (Op cm (ca + i) o) (ca + i) (ca + i + oo - 1) ca , ca + oo)

@@ -1,0 +1,9 @@
+# Introduction #
+
+import  ACT/4-com-prob
+
+note {Welcome to the Box of String tool. Here you see an example of a String Diagram.}
+
+show  Intro (1) {
+	0:b , 0:c, 1:o, 0:n, 1:c; 0:o
+}

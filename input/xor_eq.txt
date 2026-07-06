@@ -1,0 +1,26 @@
+# XOR calculus: using xor as primitive  #
+
+# Import the copy-discard category theory #
+Import{xor}
+
+Schema{naturality}{x.d}{x.c.d.r.0.1.n}
+
+Operation{e}{2}{2}{1}
+
+Name{Equal|Conditional checks whether the two variables are equal or not, reasing an exception if not. If equal, it returns the value both variables hold}
+Play{2}{0.e;}
+
+Define{3}{0.e;0.e;}{1.e;0.e;}
+Define{2}{0.x;0.e;}{0.e;}
+Define{2}{0.c;1.e;}{0.e;0.c;}
+Assume{2}{1.c;0.e;}{0.e;0.c;}
+
+
+Define{3}{0.e;0.r;}{2.c;1.x;0.r;1.r;0.e;}
+Lemma{3}{1.e;0.r;}{0.c;1.x;0.r;1.r;0.e;}
+Define{0}{0.1;}{0.1;1.1;0.e;}
+Assume{0}{0.0;}{0.0;1.0;0.e;}
+Lemma{2}{0.e;0.n;}{0.n;1.n;0.e;}
+
+Exercise{3}{0.c;2.c;4.c;1.x;3.x;0.r;1.r;2.r;0.e;0.e;}{0.e;0.e;0.d;0.0;}
+Exercise{4}{0.c;4.c;1.x;3.x;2.x;0.r;3.r;3.c;0.r;1.r;0.e;}{1.e;1.r;1.c;0.r;}

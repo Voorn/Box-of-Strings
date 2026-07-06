@@ -1,0 +1,41 @@
+
+import theory/Frobenius
+
+op  u : 0 -> 2  [v]
+op  v : 2 -> 0  [v]
+
+schema  flip    {x,c,d,e,b,u,v} {x,c,d,e,b,u,v}
+schema  mirror  {x,c,d,e,b,u,v} {x,e,b,c,d,v,u}
+
+def  cup (0)  {
+	0:u
+	=
+	0:b,0:c
+}
+
+
+
+lem  cup-twist (0) {
+    0:u, 0:x
+    =
+    0:u
+}
+
+lem  cupper (0) {
+    0:u, 0:c
+    =
+    0:u, 1:c
+}
+
+lem  chipped-cup (0) {
+    0:u, 0:d
+    =
+    0:b
+}
+
+lem  snake-cups (1) {
+    0:u, 1:v
+    =
+    id
+}
+

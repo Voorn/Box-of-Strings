@@ -1,0 +1,10 @@
+
+import  circuit/base-gates
+
+# This schema asserts that any equation we have holds when flipped upside down as well #
+schema  flip  {x,c,d,n,a,o,0,1} {x,c,d,n,a,o,0,1}
+
+show  Reduce (3) {
+        0:n, 1:c, 3:c, 0:c, 2:n, 0:n, 1:x, 3:x, 0:a, 1:x, 3:a, 0:a, 2:n, 1:o, 0:c, 2:c, 0:n, 1:x, 3:n, 0:a, 1:o
+}
+

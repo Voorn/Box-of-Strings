@@ -1,0 +1,32 @@
+# Introduction #
+
+
+
+op  f : 2 -> 1
+op  g : 1 -> 2
+op  h : 1 -> 1
+
+
+show  composition (2) {
+    0:f, 0:g
+}
+
+show  parallel (3) {
+    0:f, 1:g
+}
+
+show  examples (2) {
+    1:g, 0:f, 1:h
+}
+
+def  Frobenius (2) {
+    0:g, 1:f
+    =
+    1:g, 0:f
+}
+
+lem  Double (3) {
+    0:g, 1:f, 1:f
+    =
+    2:g, 1:f, 0:f
+}

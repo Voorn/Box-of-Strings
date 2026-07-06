@@ -1,0 +1,157 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+import  theory/copy-discard
+
+op  q : 1 -> 0  [leak]
+op  f : 1 -> 1
+
+note {This is the theory of leaky categories, based on the co-para construction. This uses the leaky co-unit, symbolizing information leaked.}
+show  Leaky-co-unit (1) {
+        0:q
+}
+
+note {We say that one morphism leaks more than another, if one can simulate the other. That is, there is a morphism on leaks transforming one into the other.}
+def  Simulation (1) {
+        0:f, 0:q
+        <
+        0:q
+}
+
+note {Leaking something "leaks more" than simply discarding it.}
+def  Discard-Leak (1) {
+        0:d
+        <
+        0:q
+}
+
+schema  naturality<  {x,q}  {}
+
+note {Moreover, leaking something twice is no worse than leaking it once, since we can simulate a double leak with a copy.}
+lem  Copy-Leak-1 (1) {
+        0:c, 0:q, 0:q
+        <
+        0:q
+}
+
+note {Simultaneously, leaking something twice is at least as bad as leaking it once, since more leaks leak more.}
+lem  Copy-Leak-2 (1) {
+        0:c, 0:q, 0:q
+        >
+        0:q
+}
+
+proof  (1) {
+        0:c, 0:[Dist(x,d,q) (1) {0:q > 0:d}], 0:q
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}], 0:q
+}
+
+note {By anti-symmetry, leaking something twice is the same as leaking it once.}
+lem  Copy-Leak (1) {
+        0:c, 0:q, 0:q
+        =
+        0:q
+}
+
+# =============================== #
+# Leaky identity: syntactic sugar #
+# =============================== #
+
+op  l : 1 -> 1 [leak]
+
+note {The leaky identity is defined as copying and leaking a resource.}
+def  Leaky-identity (1) {
+        0:l
+        =
+        0:c, 1:q
+}
+
+lem  Lemma26 (1) {
+        0:l, 0:q
+        =
+        0:q
+}
+
+proof  (1) {
+        0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:q
+        =
+        0:[{Copy-Leak-2<>Dist(x,c,q)} (1) {0:c, 0:q, 0:q = 0:q}]
+}
+
+lem  Lemma27 (1) {
+        0:l
+        >
+        id
+}
+
+proof  (1) {
+        0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        0:c, 1:[Dist(x,d,q) (1) {0:q > 0:d}]
+        =
+        0:[Copy-unital2 (1) {0:c, 1:d = id}]
+}
+
+note {Again, leaking something twice is the same as leaking it once.}
+lem  Double-Leak (1) {
+        0:l, 0:l
+        =
+        0:l
+}
+
+proof  (1) {
+        0:l, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:c, 1:q
+        =
+        0:[Copy-assoc (1) {0:c, 0:c = 0:c, 1:c}], 2:q, 1:q
+        =
+        0:c, 1:[{Copy-Leak-2<>Dist(x,c,q)} (1) {0:c, 0:q, 0:q = 0:q}]
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}]
+}
+
+note {The position of the leak matters not.}
+lem  Lid-Copy (1) {
+        0:l, 0:c
+        =
+        0:c, 1:l
+}
+
+proof  (1) {
+        0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:c
+        =
+        0:[Copy-assoc (1) {0:c, 0:c = 0:c, 1:c}], 2:q
+        =
+        0:c, 1:[Leaky-identity (1) {0:c, 1:q = 0:l}]
+}
+
+lem  Lid-Copy2 (1) {
+        0:l, 0:c
+        =
+        0:c, 0:l
+}
+
+proof  (1) {
+        0:l, 0:[Copy-comm (1) {0:c = 0:c, 0:x}]
+        =
+        0:[Lid-Copy (1) {0:l, 0:c = 0:c, 1:l}], 0:x
+        =
+        0:c, 0:[SymU(x,l) (2) {1:l, 0:x = 0:x, 0:l}]
+        =
+        0:[Copy-comm (1) {0:c, 0:x = 0:c}], 0:l
+}
+
+lem  Lid-discard (1) {
+        0:q
+        =
+        0:l, 0:d
+}
+
+
+proof  (1) {
+        0:[Copy-unital (1) {id = 0:c, 0:d}], 0:q
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 0:d
+}
+

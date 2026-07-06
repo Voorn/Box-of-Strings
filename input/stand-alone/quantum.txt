@@ -1,0 +1,130 @@
+# CNOT gate theory #
+
+# Loading symmetry theory #
+import  theory/symmetry
+
+
+op  q : 2 -> 2  [qd]
+op  u : 2 -> 2  [qu]
+
+op  Q : 3 -> 3  [qd]
+op  U : 3 -> 3  [qu]
+
+def  Axiom9 (2) {
+        0:q, 0:q
+        =
+        id
+}
+
+
+def  Axiom10 (2) {
+        0:u
+        =
+        0:x, 0:q, 0:x
+}
+
+
+lem  Lemma11 (2) {
+        0:x, 0:q
+        =
+        0:u, 0:x
+}
+
+
+lem  Lemma13 (2) {
+        0:q
+        =
+        0:x, 0:u, 0:x
+}
+
+
+lem  Lemma14 (2) {
+        0:u, 0:u
+        =
+        id
+}
+
+
+def  Axiom15 (2) {
+        0:q, 0:u, 0:q
+        =
+        0:x
+}
+
+
+lem  Lemma16 (2) {
+        0:u, 0:q, 0:u
+        =
+        0:x
+}
+
+
+example  Example17 (2) {
+        0:q, 0:u, 0:q, 0:u, 0:q, 0:u
+        =
+        id
+}
+
+
+def  Axiom19 (3) {
+        0:Q
+        =
+        1:x, 0:q, 1:x
+}
+
+
+lem  Lemma20 (3) {
+        0:Q
+        =
+        0:x, 1:q, 0:x
+}
+
+
+def  Axiom23 (3) {
+        0:q, 1:q
+        =
+        1:q, 0:Q, 0:q
+}
+
+
+lem  Lemma24 (3) {
+        1:q, 0:q, 1:q, 0:q
+        =
+        0:Q
+}
+
+
+def  Axiom27 (3) {
+        0:q, 1:u
+        =
+        1:u, 0:q
+}
+
+
+lem  Lemma28 (3) {
+        0:Q, 0:q
+        =
+        0:q, 0:Q
+}
+
+
+lem  Lemma32 (3) {
+        0:q, 1:q, 0:q, 1:q
+        =
+        0:Q
+}
+
+
+lem  Lemma34 (3) {
+        1:q, 0:q
+        =
+        0:q, 0:Q, 1:q
+}
+
+
+example  Example36 (3) {
+        0:x, 1:x, 0:x
+        =
+        0:Q, 0:U, 0:Q
+}
+

@@ -1,0 +1,86 @@
+# Bialgebra example #
+
+Import{symmetry}
+
+op  c : 1 -> 2  [w]
+op  d : 1 -> 0  [w]
+op  e : 2 -> 1  [w]
+op  b : 0 -> 1  [w]
+
+op  f : 1 -> 2  [2]
+op  g : 2 -> 1  [2]
+
+
+Schema{naturality}{x.c}{}
+Schema{naturality}{x.d}{}
+Schema{naturality}{x.e}{}
+Schema{naturality}{x.b}{}
+
+Schema{mirror}{x.c.d.e.b.f.g}{x.e.b.c.d.g.f}
+Schema{flip}{x.c.d.e.b.f.g}{x.c.d.e.b.f.g}
+
+def  associative (3) {
+    0:e, 0:e
+    =
+    1:e, 0:e
+}
+
+
+def  Unnamed (1) {
+    0:b, 0:e
+    =
+    id
+}
+
+def  Unnamed (2) {
+    0:x, 0:e
+    =
+    0:e
+}
+
+
+def  Unnamed (3) {
+    0:g, 0:g
+    =
+    1:g, 0:g
+}
+
+def  Unnamed (2) {
+    0:x, 0:g
+    =
+    0:g
+}
+
+def  Unnamed (1) {
+    0:c, 0:e
+    =
+    id
+}
+
+def  Unnamed (1) {
+    0:f, 0:g
+    =
+    id
+}
+
+def  Unnamed (3) {
+    0:e, 0:g
+    =
+    2:c, 1:x, 0:g, 1:g, 0:e
+}
+
+op  p : 1 -> 1
+
+op  q : 1 -> 1
+
+def  Unnamed (1) {
+    0:f, 0:p, 1:q
+    =
+    0:c, 0:p, 1:q, 0:f, 2:f, 1:q, 2:p, 1:x, 0:e, 1:e
+}
+
+lem  Unnamed (1) {
+    0:f, 0:p, 1:q, 0:g
+    =
+    0:c, 0:p, 1:q, 0:q, 1:p, 0:e
+}

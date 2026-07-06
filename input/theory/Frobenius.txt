@@ -1,0 +1,42 @@
+
+import theory/symmetry
+
+op  c : 1 -> 2  [2]
+op  d : 1 -> 0  [2]
+op  e : 2 -> 1  [2]
+op  b : 0 -> 1  [2]
+
+
+schema  flip    {x,c,d,e,b} {x,c,d,e,b}
+schema  mirror  {x,c,d,e,b} {x,e,b,c,d}
+
+# monoid #
+def  associative (3) {
+	0:e, 0:e
+	=
+	1:e, 0:e
+}
+def  commutative (2) {
+	0:x, 0:e
+	=
+	0:e
+}
+def  unitality (1) {
+	0:b, 0:e
+	=
+	id
+}
+
+# Frobenius #
+def  Frobenius (2) {
+        0:c, 1:e
+        =
+        0:e, 0:c
+}
+def  Bone  (0) {
+	0:b, 0:d
+	=
+	id
+}
+
+

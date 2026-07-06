@@ -1,0 +1,52 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{theory/cartesian}
+
+# Limiting naturality #
+Schema{naturality}{x.c}{x.c.d}
+Schema{naturality}{x.d}{x.c.d}
+
+Operation{q}{leak}{1}{0}
+Operation{f}{}{1}{1}
+
+Name{Leaky co-unit|This is the theory of leaky categories, based on the co-para construction. This uses the leaky co-unit, symbolizing information leaked.}
+Play{1}{0.q;}
+
+Schema{<naturality}{x.q}{}
+
+Name{Simulation|We say that one morphism leaks more than another, if one can simulate the other. That is, there is a morphism on leaks transforming one into the other.}
+Display{1}{0.f;0.q;}<{0.q;}
+
+Name{Discard-Leak|Leaking something "leaks more" than simply discarding it.}
+Display{1}{0.d;}<{0.q;}
+
+Assume{2}{0.x;0.q;0.q;}{0.q;0.q;}
+
+Name{Copy-Leak 1|Moreover, leaking something twice is no worse than leaking it once, since we can simulate a double leak with a copy.}
+Lemma{1}{0.c;0.q;0.q;}<{0.q;}
+
+Name{Copy-Leak 2|and simultaneously, leaking something twice is at least as bad as leaking it once, since more leaks leak more.}
+Lemma{1}{0.c;0.q;0.q;}>{0.q;}
+
+Name{Copy-Leak|By anti-symmetry, leaking something twice is the same as leaking it once.}
+Exercise{1}{0.c;0.q;0.q;}{0.q;}
+
+Operation{l}{leak}{1}{1}
+
+Name{Leaky identity|The leaky identity is defined as copying and leaking a resource.}
+Definition{1}{0.l;}{0.c;1.q;}
+
+
+Lemma{1}{0.l;0.q;}>{0.q;}
+Lemma{1}{0.l;}>{}
+
+Name{Double Leak|Again, leaking something twice is the same as leaking it once.}
+Lemma{1}{0.l;0.l;}{0.l;}
+
+Name{Lid Copy|The position of the leak matters not.}
+Lemma{1}{0.l;0.c;}{0.c;0.l;}
+Lemma{1}{0.l;0.c;}{0.c;1.l;}
+
+Lemma{1}{0.q;}{0.l;0.d;}
+
+

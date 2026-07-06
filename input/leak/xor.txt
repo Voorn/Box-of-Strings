@@ -1,0 +1,79 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{leak/base}
+
+Operation{s}{}{2}{1}
+Operation{0}{0}{0}{1}
+Operation{k}{}{0}{1}
+
+Schema{naturality}{x.c}{x.c.d.s.0}
+Schema{naturality}{x.d}{x.c.d.s.0.k}
+Schema{flip}{x.c.d.q.l.s.0.k}{x.c.d.q.l.s.0.k}
+
+Name{Xor gate|We apply the leaky construction to Boolean probabilistic circuits, with a binary operation implementing the xor gate}
+Play{2}{0.s;}
+
+Name{XOR-associative}
+Definition{3}{0.s;0.s;}{1.s;0.s;}
+Name{XOR-commute}
+Definition{2}{0.x;0.s;}{0.s;}
+Name{XOR-unital}
+Definition{1}{0.0;0.s;}{}
+Definition{1}{0.c;0.s;}{0.d;0.0;}
+
+Lemma{2}{0.s;0.l;}<{0.l;1.l;0.s;}
+Lemma{2}{1.l;0.s;0.l;}<{0.l;1.l;0.s;}
+
+Lemma{2}{1.l;0.s;0.l;}>{0.l;0.s;}
+Lemma{2}{1.l;0.s;0.l;}>{0.l;1.l;0.s;}
+
+Exercise{3}{1.l;0.l;1.s;0.s;0.l;}{0.l;1.l;2.l;1.s;0.s;}
+
+Name{Coint toss|The ? counit describes a fair coint toss, producing 50% 0 and 50% 1}
+Play{0}{0.k;}
+
+Definition{0}{0.k;0.d;}{}
+Definition{1}{0.k;0.s;}{0.d;0.k;}
+Assume{1}{1.k;0.s;}{0.d;0.k;}
+
+Lemma{1}{0.k;0.c;1.s;}{1.k;1.c;0.s;}
+
+Lemma{0}{0.k;0.q;}<{}
+Lemma{0}{0.k;0.q;}>{}
+
+Lemma{0}{0.k;0.l;0.d;}={}
+
+Name{Leak-encrypt|Encrypting and decrypting a bit with a key, while leaking the encryption. This is equal to passing the original bit to the recipient, and leaking the encrypted bit separately.}
+Lemma{2}{0.c;1.s;1.l;0.s;}{1.c;0.s;0.q;}
+
+Trace{2}{
+0.c;1.s;1.{1}{Leaky identity}{0.l;}={0.c;1.q;};0.s;
+|0.c;1.{2}{Dist(x,s,c)}{0.s;0.c;}={0.c;2.c;1.x;0.s;1.s;};0.s;1.q;
+|0.c;1.c;3.c;2.x;0.{3}{F(XOR-associative)}{1.s;0.s;}={0.s;0.s;};1.s;1.q;
+|0.{1}{Axiom10}{0.c;1.c;}={0.c;0.c;};3.c;2.x;0.s;0.s;1.s;1.q;
+|0.c;2.c;1.x;0.{1}{F(Axiom35)}{0.c;0.s;}={0.d;0.0;};0.s;1.s;1.q;
+|0.c;2.c;1.x;0.d;0.{1}{XOR-unital}{0.0;0.s;}={};1.s;1.q;
+|0.{1}{Axiom14}{0.c;0.d;}={};1.c;0.x;1.s;1.q;
+|1.{1}{Axiom12}{0.c;}={0.c;0.x;};0.x;1.s;1.q;
+|1.c;0.{3}{SymD(x,s)}{1.x;0.x;1.s;}={0.s;0.x;};1.q;
+|1.c;0.s;0.{2}{SymD(x,q)}{0.x;1.q;}={0.q;};
+}
+
+Name{Leak-?encrypt|If the used key is randomly generated and not used elsewhere, then leaking only the encrypted bit is equal to leaking nothing.}
+Lemma{1}{0.k;0.c;1.s;1.l;0.s;}{}
+Name{Leak-?key|Similarly, leaking only the randomly generated key and nothing else is equal to leaking nothing as well.}
+Lemma{1}{0.k;0.l;0.c;1.s;0.s;}{}
+Name{Leak-?both|However, if both the key and the encrypted bit is leaked, then the original key is leaked.}
+Lemma{1}{0.k;0.l;0.c;1.s;1.l;0.s;}{0.l;}
+
+Name{2Leak>|If the same key is used to encrypt two messages, and both encryptions are leaked, then at least the sum of messages is leaked.}
+Lemma{2}{1.k;1.c;1.c;3.c;0.s;3.s;0.l;3.l;0.s;1.s;}>{0.c;2.c;1.s;1.q;}
+Name{2Leak<|If the same key is used to encrypt two messages, and both encryptions are leaked, then at most the sum of messages is leaked.}
+Lemma{2}{1.k;1.c;1.c;3.c;0.s;3.s;0.l;3.l;0.s;1.s;}<{0.c;2.c;1.s;1.q;}
+
+Name{2Leak=|So if the same key is used to encrypt two messages, and both encryptions are leaked, then exactly the sum of messages is leaked.}
+Exercise{2}{1.k;1.c;1.c;3.c;0.s;3.s;0.l;3.l;0.s;1.s;0.l;}={0.l;1.l;}
+
+Lemma{2}{1.k;1.c;1.c;3.c;0.s;3.s;0.l;3.l;0.s;1.s;0.l;}={0.l;1.l;}
+
+

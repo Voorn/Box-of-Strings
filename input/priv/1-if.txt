@@ -1,0 +1,192 @@
+# If theory: using the If-scheme assumption to describe Boolean circuits #
+
+import  theory/copy-discard
+
+op  p : 3 -> 1  [phi]
+op  0 : 0 -> 1  [0]
+op  1 : 0 -> 1  [0]
+op  g : 2 -> 2
+
+
+schema  flip {x,c,d,p,0,1} {x,c,d,p,1,0}
+schema  naturality {x,c} {p,0,1}
+schema  naturality {x,d} {p,0,1,g}
+
+# ------------------------------------- #
+
+show  If-gate (3) {
+        0:p
+}
+
+def  If-true (2) {
+        1:1, 0:p
+        =
+        1:d
+}
+
+def  If-false (1) {
+        0:1, 2:0, 0:p
+        =
+        id
+}
+
+def  If-both (2) {
+        0:c, 1:x, 0:p
+        =
+        1:d
+}
+
+
+note  {If-gates are natural in the following way: we can choose between two outputs or two inputs, as long as the corresponding morphism is total}
+def  If-nat-example (5) {
+    0:g, 3:g, 2:c, 1:x, 3:x, 2:x, 0:p, 1:p
+    =
+    2:c, 1:x, 3:x, 2:x, 0:p, 1:p, 0:g
+}
+
+
+schema  if  {x,c,d,p} {x,c,d,p,0,1,g}
+
+lem  If-if (5) {
+        1:p, 0:p
+        =
+        0:c, 5:c, 1:x, 4:x, 3:x, 2:x, 3:x, 0:p, 2:p, 0:p
+}
+
+# ========================== #
+# SYNTACTIC SUGAR OPERATIONS #
+# ========================== #
+
+op  n : 1 -> 1  [not]
+op  a : 2 -> 1  [and]
+op  o : 2 -> 1  [or]
+
+schema  if {x,c,d,p} {x,c,d,p,0,1,g,n,a,o}
+schema  flip {n,a,o} {n,o,a}
+schema  naturality {x,c} {n,a,o}
+schema  naturality {x,d} {n,a,o}
+
+def  Axiom24 (1) {
+        0:n
+        =
+        0:0, 2:1, 0:p
+}
+
+lem  Lemma25 (0) {
+        0:0, 0:n
+        =
+        0:1
+}
+
+lem  Lemma26 (0) {
+        0:1, 0:n
+        =
+        0:0
+}
+
+lem  Lemma27 (1) {
+        0:n, 0:n
+        =
+        id
+}
+
+note  {Helpful lemma. Just autoreduce to prove}
+lem  Middle-Case (3) {
+        0:c, 3:c, 2:1, 1:x, 4:0, 4:x, 3:x, 2:x, 3:x, 3:c, 3:c, 5:x, 2:x, 4:x, 6:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p
+        =
+        id
+}
+
+lem  Lemma28 (3) {
+        1:n, 0:p
+        =
+        0:x, 1:x, 0:x, 0:p
+}
+
+def  Axiom29 (2) {
+        0:a
+        =
+        2:0, 0:p
+}
+
+lem  Lemma30 (1) {
+        0:0, 0:a
+        =
+        0:d, 0:0
+}
+
+lem  Lemma31 (1) {
+        1:0, 0:a
+        =
+        0:d, 0:0
+}
+
+lem  Lemma32 (1) {
+        0:1, 0:a
+        =
+        id
+}
+
+lem  Lemma33 (1) {
+        1:1, 0:a
+        =
+        id
+}
+
+lem  Lemma34 (1) {
+        0:c, 0:a
+        =
+        id
+}
+
+lem  Lemma35 (2) {
+        0:x, 0:a
+        =
+        0:a
+}
+
+proof  (2) {
+        1:[F(If-false) (1) {id = 0:1, 2:0, 0:p}], 0:x, 0:a
+        =
+        1:[Copy-unital (1) {id = 0:c, 0:d}], 1:1, 3:0, 1:p, 0:x, 0:a
+        =
+        1:c, 0:[If-both (2) {1:d = 0:c, 1:x, 0:p}], 1:1, 3:0, 1:p, 0:x, 0:a
+        =
+        0:c, 1:[Copy-wire-down (2) {1:c, 0:x = 0:x, 0:c, 1:x}], 0:p, 1:1, 3:0, 1:p, 0:x, 0:a
+        =
+        0:c, 1:x, 1:c, 2:x, 2:[SymD(x,1) (1) {1:1 = 0:1, 0:x}], 0:p, 3:0, 1:p, 0:x, 0:a
+        =
+        0:c, 1:x, 1:c, 2:x, 1:[SymD(x,1) (1) {1:1 = 0:1, 0:x}], 2:x, 0:p, 3:0, 1:p, 0:x, 0:a
+        =
+        0:c, 1:x, 1:1, 4:0, 0:[If(x) (5) {2:c, 1:x, 3:x, 2:x, 0:p, 1:p, 0:x = 0:x, 2:c, 4:x, 1:x, 3:x, 2:x, 0:p, 1:p}], 0:a
+        =
+        0:c, 1:x, 1:1, 4:0, 0:x, 3:x, 0:[If(a) (5) {2:c, 1:x, 3:x, 2:x, 0:p, 1:p, 0:a = 0:a, 2:a, 0:p}]
+        =
+        0:c, 1:x, 1:1, 0:x, 3:[SymU(x,0) (1) {1:0, 0:x = 0:0}], 0:a, 2:a, 0:p
+        =
+        0:c, 1:x, 1:1, 0:x, 0:a, 2:[Lemma30 (1) {0:0, 0:a = 0:d, 0:0}], 0:p
+        =
+        0:c, 1:[SymD(x,d) (2) {0:x, 1:d = 0:d}], 1:1, 0:x, 0:a, 2:0, 0:p
+        =
+        0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:1, 0:x, 0:a, 2:0, 0:p
+        =
+        0:[SymU(x,1) (1) {1:1, 0:x = 0:1}], 0:a, 2:0, 0:p
+        =
+        0:[Lemma32 (1) {0:1, 0:a = id}], 2:0, 0:p
+        =
+        0:[Axiom29 (2) {2:0, 0:p = 0:a}]
+}
+
+lem  Lemma36 (3) {
+        0:a, 0:a
+        =
+        1:a, 0:a
+}
+
+lem  Lemma37 (2) {
+        0:n, 1:n, 0:a, 0:n
+        =
+        0:o
+}
+
+

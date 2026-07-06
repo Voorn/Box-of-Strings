@@ -1,0 +1,11 @@
+# Cartesian category is copy discard in which the copy and discard are natural #
+
+# Dependencies #
+import theory/copy-discard
+
+schema naturality {x,c} {}
+schema naturality {x,d} {}
+
+show  operations (4)  {
+	0:x , 2:c , 4:d
+}

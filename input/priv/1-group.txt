@@ -1,0 +1,94 @@
+# Layer 1: Option Group #
+# Theory of groups with three operations and relevant equations #
+# We do not assume here that the group is commutative #
+
+# Dependencies #
+import  theory/copy-discard
+
+# New Operations #
+op  o : 2 -> 1  [w]
+op  e : 0 -> 1  [w]
+op  n : 1 -> 1  [not]
+
+# Group operations are deterministic and total #
+Schema{naturality}{x.c}{o.e.n}
+Schema{naturality}{x.d}{o.e.n}
+
+# ----------------------------------------------- #
+
+note {We assume given an associative, but not commutative operation.}
+show  Groups (2) {
+        0:o
+}
+
+def  Axiom19 (3) {
+        0:o, 0:o
+        =
+        1:o, 0:o
+}
+
+note {We have a neutral element.}
+show  Identity (0) {
+        0:e
+}
+
+def  Axiom21 (1) {
+        0:e, 0:o
+        =
+        id
+}
+
+def  Axiom22 (1) {
+        1:e, 0:o
+        =
+        id
+}
+
+note {We have an inverse function.}
+show  Inverse (1) {
+        0:n
+}
+
+def  Axiom24 (1) {
+        0:c, 0:n, 0:o
+        =
+        0:d, 0:e
+}
+
+def  Axiom25 (1) {
+        0:c, 1:n, 0:o
+        =
+        0:d, 0:e
+}
+
+note {First of the lemmas.}
+lem  Double-Inverse (1) {
+        0:n, 0:n
+        =
+        id
+}
+
+lem  Op-inv (2) {
+        0:o, 0:n
+        =
+        0:x, 0:n, 1:n, 0:o
+}
+
+lem  Op-inv2 (2) {
+    0:n, 1:n, 0:o
+    =
+    0:x, 0:o, 0:n
+}
+
+lem  Lemma28 (0) {
+        0:e, 0:n
+        =
+        0:e
+}
+
+lem  Example29 (2) {
+        0:c, 1:o, 0:n, 0:c, 1:o, 0:n
+        =
+        id
+}
+

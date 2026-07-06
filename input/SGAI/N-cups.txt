@@ -1,0 +1,19 @@
+# Two cups: for theory generating purposes #
+
+Import{SGAI/4-prob}
+
+Operation{v}{w}{0}{2}
+Operation{u}{2}{0}{2}
+
+Schema{naturality}{x.d}{v.u}
+Schema{flip}{v.u}{v.u}
+
+Name{Def-white-cup}
+Definition{0}{0.v;}{0.e;0.s;}
+
+Name{Def-black-cup}
+Definition{0}{0.u;}{0.b;0.c;}
+
+# -------------------------------------- #
+
+

@@ -1,0 +1,17 @@
+
+Import{1-xor-base}
+
+Operation{b}{2}{0}{1}
+
+Schema{naturality}{x.d}{b}
+
+Name{Coin|Coin flip.}
+Play{0}{0.b;}
+
+Define{1}{0.b;0.r;}{0.d;0.b;}
+Lemma{1}{1.b;0.r;}{0.d;0.b;}
+
+Lemma{1}{0.b;0.c;1.r;1.c;0.r;}{1.b;}
+
+Lemma{2}{1.b;1.c;1.c;3.c;0.r;3.r;0.c;4.c;1.x;3.x;0.r;1.r;2.r;}{0.c;2.c;1.r;}
+

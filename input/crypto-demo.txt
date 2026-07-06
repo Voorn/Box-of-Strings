@@ -1,0 +1,47 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{Cartesian}
+
+Operation{s}{xor}{2}{1}
+Operation{0}{0}{0}{1}
+
+Schema{naturality}{x.c}{x.c.d.s.0}
+
+Name{XOR|Let us explore an encryption-decruption example with Box of Strings|We use XOR-gate as encryption and decryption}
+Play{2}{0.s;}
+
+Name{Associative|We assume equations for behaviour of XOR, such as associativity.}
+Definition{3}{0.s;0.s;}{1.s;0.s;}
+
+Name{unital|We assume there is some neutral element 0, or falsehood.}
+Definition{1}{0.0;0.s;}{}
+
+Name{Inverse|Third assumption: any element is its own inverse according to XOR.|Note, copy-discard theory with black dots is loaded in.}
+Definition{1}{0.c;0.s;}{0.d;0.0;}
+
+Name{EncryptDecrypt|Given the assumed equations, we can prove lemmas|and add the result to the theory.}
+Lemma{2}{0.c;1.s;0.s;}{0.d;}
+
+Operation{f}{0}{0}{1}
+
+Schema{naturality}{x.d}{x.c.d.s.0.f}
+Schema{flip}{x.c.d.s.0.f}{x.c.d.s.0.f}
+
+Assume{0}{0.f;0.d;}{}
+Assume{1}{0.f;0.s;}{0.d;0.f;}
+Assume{1}{1.f;0.s;}{0.d;0.f;}
+
+Name{Coinflip|We use a coinflip operation to generate a random bit.|We shall assume but not display more axioms,|some added automatically according to schema}
+Play{0}{0.f;}
+
+Name{OneTimePad|Example from [Broadbent, Karvonen, 2021], a leaked encrypted bit|looks like random noise}
+Lemma{1}{0.f;0.c;1.s;1.c;0.s;}{1.f;}
+
+Assume{1}{0.f;0.c;1.s;}{1.f;1.c;0.s;}
+Assume{2}{0.c;1.s;1.c;0.x;1.s;}{1.c;0.s;}
+
+Name{DoubleLeak|Scaling up, we can show that reusing one-time-pad key|leaks the "sum" of the two original messages.}
+Play{3}{1.c;1.c;3.c;0.s;3.s;0.c;4.c;1.x;3.x;0.s;3.s;1.s;}
+
+
+

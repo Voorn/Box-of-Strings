@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Box of Strings Guide</title>
+</head>
+
+<style>
+  body {
+    width:60%;
+    margin: auto;
+  }
+  p {
+    font-size: 20px;
+  }
+</style>
+
+<body>
+
+<h1>Box of Strings Guide</h1>
+
+<h2>Overview</h2>
+
+<p>
+This is a quick guide to the Box of Strings tool. The tool enables you to graphically rewrite string diagrams using collections of rewrite tools. This allows you to prove consequences of certain collections of axioms, in monoidal categories. Theories can be specified by code as a sequence of operation declarations, axiomatic equations, and derivable lemmas. The tool can load these specifications, and allows you to navigate through them, letting you interact with the definitions and attempt to prove the lemmas. 
+</p>
+
+<p>
+We structure this guide into three parts. First, we go over how to manipulate string diagrams, applying rewrites and navigating the rewrite history. Second, we go over how to navigate the thoery which is loaded in, and the meaning of Axioms and Lemmas in the wider context. Third, we go over how to typeset a theory for your own, 
+</p>
+
+<h2>Part 1: Rewriting Diagrams</h2>
+
+<p>
+For this part, we use the file "circuit/bit-demo" as our guiding example. This loads in the theory of Boolean circuits with accompanying equations. It displays a string diagrams representing a particular circuit. This diagram can be altered and equations can be applied in the following three steps.
+</p>
+
+<h3>Left mouse button: Moving and grouping operations</h3>
+
+<p>
+Using the left mouse button, you can click and drag components of the string diagrams. Note that the diagram displays the operations in a particular order, representing morphisms in the style of premonoidal categories. Moving them around will reorder the operations, if possible. Drag operations together, and they will be grouped if possible, forming a "Box", this tools' namesake. The Box represents a composite operation, representing a diagram within a diagram. Advanced: Boxes can also be formed by clicking on the small circle on a wire, forming an identity morphism, or clicking on the space between wires, forming a void morphism.
+</p>
+
+<h3>Mouse wheel: scrolling through rewrites</h3>
+
+<p>
+When hovering over operations or boxes, you can see a collection of possible rewrites on the righthand side of the screen. These can be scrolled through using the mouse wheel, or by using the up and down arrow keys (up and down can be use instead of scrolling in most cases). The rewrite will be placed in the box under your mouse, but is not considered as applied yet. A box with a rewrite cannot be merged with other operations or boxes.
+</p>
+
+<h3>Right mouse button: Popping boxes and applying rewrites</h3>
+
+<p>
+By right clicking on any box, the box will be removed and the content will be released. If the box currently displays a rewrite, this rewrite will be applied and the new state of the diagram will be saved to the history on the left-hand side of the screen. Rewrites are hence performed by doing these three actions in succession: collecting operations in a box by dragging them together with the left mouse button (or hovering over a single operation), scrolling through possible rewrites, and right-clicking to apply the rewrite.
+</p>
+
+<video width="80%" controls>
+  <source src="demo.webm" type="video/webm">
+Your browser does not support the video tag.
+</video>
+
+<h3>Navigating the rewrite history</h3>
+
+<p>
+On the lefthand side, you can see the history of rewrites you have applied, as well as the goal if the current page has one. The middle diagram, the one with the grey border, is the current state. Below is the next state, and above is the previous state. Hover over the history, and scroll to quickly go between different rewrites. Click on the previous or next state, the tool will animate the rewrite as if you applied it yourself. Click below the next state to automatically animate all rewrites till the end in succession. Click above the previous to animate all the steps in reverse until the beginning. WARNING: applying a rewrite when in a past state may delete all future states (similar to editing in general rid of the "redo").
+If the current page has a goal, it will be displayed under the thick black line. The screen will turn green when the current rewrite is equal to the goal, verifying you have proven the goal.
+Advanced: If the current display has a goal, you can scroll down to it and click on it, to shift to the goal state. You can attempt to prove the lemma in reverse, now with the previous final rewrite as the new goal.
+</p>
+
+<h3>Additional features</h3>
+
+<p>
+The "Auto-Reduce" button will look for any rewrite it can apply which will reduce the number of operations and wires in the diagram. This can be used to quickly clean up the diagram on the fly. These reductions will be added to the history as if you applied it yourself.
+The flip button on the right will flip the diagram to be displayed in a top-down manner instead of a left-right manner. Theoretically, nothing changes, this is just for preference.
+The rest of the buttons have to do with navigating theories.
+</p>
+
+
+<h2>Part 2: Navigating Theories</h2>
+
+<p>
+When opening the Box of Strings tool, you are shown a list of files it has found within the input folder. Before opening the file, you can scroll to resize the draw-scale of the tool, the border being given by the rectangle. Left-clicking on a file will open it, displaying the first page of the theory contained in it.
+When opened, you can use the "Next" and "Back" button to go to the next or the previous page respectively. If the file imports other files, the "Back" button will go into these files as well.
+At any point, you can click "Load file" to go back to the list of available files to load another one.
+</p>
+
+<h3>Page types</h3>
+
+<p>
+There are essentially three different page types in any file.
+</p>
+
+<p>
+The "Show" type displays a single string diagram without a goal, which can be interacted with and rewritten as the user desires. This type is commonly used to showcase parts of the theory which do not involve a concrete rewrites, such as an operation which is added. Alternatively, the Show type can be used to give an open unspecified goal, such as reducing a diagram.
+</p>
+
+<p>
+The "Axiom" type displays a rewrite that has been assumed in the theory. The equation is added to the collection of available equations, so you can try and apply the rewrite yourself. The rewrite is also presaved in the history on the left, so you can animate it by clicking on the next state.
+</p>
+
+<p>
+The "Lemma" type displays a rewrite that can be derived. This rewrite is only added to the available rewrites for pages after the current pages. As such, unlike the "Axiom" type, we cannot directly apply the rewrite. Instead, you can attempt to prove the rewrite yourself. Note that any applied rewrites are saved when going between pages, but only as long as the file is loaded.
+</p>
+
+<video width="80%" controls>
+  <source src="pages.webm" type="video/webm">
+Your browser does not support the video tag.
+</video>
+
+<h3>Proofs</h3>
+
+<p>
+Sometimes a file has proofs saved in them. To ensure available proofs are displayed, Right-click on the file in the file select instead of left-clicking. Then, after any Lemma with a proof stored, the proof will be displayed in the page after the Lemma.
+</p>
+
+<h3>Additional features</h3>
+
+<p>
+You can look at the currently available rewrites by clicking on the "Equations" button. The list of equations are then displayed, and you can scroll through them. Left-click anywhere to back out of this page.
+</p>
+
+<p>
+"Add Rel" will add the currently proven rewrite to the current collection of rewrites, from this page on. That is, regardless of the page type you are in, it will take the initial state and the final state of your sequence of rewrites. This added rewrite will only be available as long as the file is loaded in.
+</p>
+
+<p>
+"Zoom" will take the first Box it can find, and create a new "Show"-type page in front of the current page. This can then be used to investigate the diagram and prove things on the fly. You can use this in conjunction with "Add Rel", to zoom into a part of the diagram and prove something about it, before returning to the original page.
+Use the middle mouse button on a box to add a new operation which is asserted to be equal to the content of the box.
+</p>
+
+<h3>In-tool editor</h3>
+
+<p>
+If you reach the end of the file, you will open the in-tool editor. This allows you to add new operations, axioms and lemmas on the fly, and these will be added to the file (the additions can be edited or removed by opening the file with a text editor, see next part for more typesetting details).
+</p>
+
+<p>
+Modifying the displayed diagram: Scroll to add or remove strings at the bottom. Click operations on the left, or type their corresponding letter on the keyboard, to add the operation to the diagram. Nothing will happen if there are not enough strings available. Click and drag operations to change their position, they will jump strings, unlike in rewrite mode (you may have to add more strings at the bottom to move an operation around another one). Right-click an operation to remove it from the diagram, this may fail if this leaves insufficient strings for the operations on the right.
+</p>
+
+<p>
+Specifying rewrites: Click on the options on the right to shift between definition (axiom) and lemma. When you have finished typesetting the initial state of the rewrite, press next to go to the goal state. This will copy the current state, which you can now edit. If the goal state is kept equal to the starting state, the string diagram will be added as a Show-type.
+</p>
+
+<p>
+Adding operations: If you type a character on the keyboard not bound to any existing operation, you intiate adding a new operation. Specify by typing two digits the number of input strings and output strings respectively.
+</p>
+
+<p>
+The above only gives a crude but quick way of typesetting a theory, more details would need to be typed by hand. To create a new theory, create an empty text file and load it in.
+</p>
+
+<video width="80%" controls>
+  <source src="edit.webm" type="video/webm">
+Your browser does not support the video tag.
+</video>
+
+<h2>Part 3: Typesetting Files</h2>
+
+<p>
+Text files are used to typeset theories for the Box of Strings. In this part, we go over all the commands, so you can typeset your own theory. Parsing files is done following certain conventions: lineskips and tabs are interpreted as spaces, and multiple spaces are interpreted as a single space. Anything between # symbols are ignored, functioning as comments. Besides that, the file is considered as a sequence of commands, which start with a keyword, uncaptilized, and follows additional specification. It should be noted that some files may use an older code style, which can also be parsed. These use code words starting with a capital letter. We focus on the new style here.
+</p>
+
+<p> 
+Currently, if parsing fails, opening the file will immediately initiate edit mode with the identity morphism. Error reporting will be implemented in the future.
+</p>
+
+<h3>Importing</h3>
+
+<p> <code> import  file-name </code> </p>
+
+<p> 
+A file may import the material of other files. This has to be done at the beginning of the file, since afterwards the tool will exit I/O mode.
+Imports can be implemented as above, note that files may not contain spaces.
+</p>
+
+<h3>Adding operations</h3>
+
+<p> <code> op  o : 2 -> 1  [w] </code> </p>
+
+<p> 
+Keyword "op" adds an operation. The above specifies an operation with name "o" (operations are single character), 2 input wires, and 1 output wires. Moreover, an optional argument between square brackets specicifies drawing style, and can be omitted. Above use "w" for "white dot".
+</p>
+
+<h3>Adding pages</h3>
+
+<p> <code> show  Three-o (4) {  <br>
+&ensp; 0:o , 1:o , 0:o <br>
+} </code> </p>
+
+<p> 
+Keyword "show" adds a string diagram as a show-type page. It is followed by a name, then the number of input wires between round brackets, and a sequence of operations describing the diagram between curly brackets. The sequence of operations consists of pairs separated by commas. A pair "n:c" says the operation bound the character "c" is applied while skipping "n" wires (or starting from the (n+1)th wire). E.g., if the current number of wires is "4", and operation "c" has "1" input wires and "2" output wires, then "5:c" can be interpreted as "(id_2 x c x id_1)" in categorical terms. After "4:c", there will be "5" wires.
+Instead of a sequence of operations, you may write "id" as well for the empty sequence.
+</p>
+
+<p> <code> def  Group-associative (3) { <br>
+&ensp; 0:o , 0:o  <br>
+&ensp; = <br>
+&ensp; 1:o , 0:o <br>
+} </code> </p>
+
+<p> 
+Keyword "def" adds an axiom page. Similar to show, except that the part between the curly brackets specifies both a rewrite, consisting of two diagrams separated by a rewrite symbol. Hence it has two sequences with the same number of input wires. Rewrite symbols are "=" for equation, and "<" and ">" for directional rewrites.
+You can instead use "def-hide" to add an axiom without displaying it when loaded into box of strings.
+</p>
+
+<p> <code> lem  Relat-order (2) { <br>
+&ensp; 0:o , 0:c <br>
+&ensp; < <br>
+&ensp; id <br>
+} </code> </p>
+
+<p> 
+Keyword "lem" adds a lemma page.
+You can instead use "lem-hide" to add a lemma without displaying it when loaded into box of strings.
+</p>
+
+<h3>Adding proofs</h3>
+
+<p>  <code> proof  (1) { <br>
+&ensp;  0:c, 1:n, 0:[Group-commutative (2) {0:o = 0:x, 0:o}] <br>
+&ensp;  = 0:c, 0:[SymU(x,n) (2) {1:n, 0:x = 0:x, 0:n}], 0:o <br>
+&ensp;  = 0:[Copy-commutative (1) {0:c, 0:x = 0:c}], 0:n, 0:o <br>
+&ensp;  = 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}] <br>
+} </code> 
+</p>
+
+<p>
+Proofs can be added with keyword "proof" as above. This has a sequence of rewrites separated by rewrite symbols ("=" above). A rewrite is a sequence of operations, containing a rewrite in square brackets signifying a box in the string diagram.
+</p>
+
+<h3>Schema</h3>
+
+<p>
+Schema are particular types of axioms which add multiple rewrites dependent on existing operations and rewrites. Each behaves in their own way. It is important to note that any operation referenced in a schema must already be in scope, and the same schema can be called multiple times to further edit its baheviour. We will quickly go through three examples.
+</p>
+
+<p>  <code> schema symmetry {x} {} </code> </p>
+
+<p>
+The symmetry schema specifies operations being transportable over a swap operation. It will add for any existing operation two relevant equations, as well as add those equations for any operation added in the future. "symmetry" has two arguments, the first is the name of the operation used for swap, which must be type "2 -> 2", and the second argument has an optional collection of operation names separated by commas. If left empty, all operations, both now and in the future, will be used. Otherwise, only the operations specified will be used.
+</p>
+
+<p>  <code> schema  naturality {x,c} {o,e,n} </code> </p>
+
+<p>
+Naturality schema, specifically for operation "c", with "x" used as swap operation. This here is limited to the operations "o", "e", and "n".
+</p>
+
+<p>  <code> schema  flip  {x,c,d,n} {x,c,d,n} </code> </p>
+
+<p>
+The flip schema asserts that each diagram also holds upside down. It specifies two sequences of operations, the first signifying which operations can be put upside down, and the second signifies the upside down version of those operations. Here they are the same.
+</p>
+
+<h3>Quick tips</h3>
+
+<p>
+If you run the tool from a terminal, and press "y", it will display the code for the current page as well as the current proof you constructed.
+</p>
+
+</body>
+</html>

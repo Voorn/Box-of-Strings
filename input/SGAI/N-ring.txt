@@ -1,0 +1,56 @@
+# Open ended: Ring #
+
+Import{SGAI/3-com}
+
+Operation{m}{col-silver}{2}{1}
+Operation{u}{col-silver}{0}{1}
+
+
+
+Definition{3}{
+	0.m;
+	0.m;
+}{
+	1.m;
+	0.m;
+}
+Definition{2}{
+	0.x;
+	0.m;
+}{
+	0.m;
+}
+Definition{1}{
+	0.u;
+	0.m;
+}{
+}
+Lemma{1}{
+	1.u;
+	0.m;
+}{
+}
+Definition{1}{
+	0.e;
+	0.m;
+}{
+	0.d;
+	0.e;
+}
+Lemma{1}{
+	1.e;
+	0.m;
+}{
+	0.d;
+	0.e;
+}
+Definition{3}{
+	0.o;
+	0.m;
+}{
+	2.c;
+	1.x;
+	0.m;
+	1.m;
+	0.o;
+}

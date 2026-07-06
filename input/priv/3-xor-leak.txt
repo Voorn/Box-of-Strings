@@ -1,0 +1,294 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{priv/2-xor-prob}
+Import{priv/3-base-leak}
+
+Schema{flip}{x.c.d.q.l.r.0.b}{x.c.d.q.l.r.0.b}
+
+# ============= #
+# Leaks and XOR #
+# ============= #
+
+lem  XOR-leak-<' (2) {
+        0:r, 0:l
+        <
+        0:l, 1:l, 0:r
+}
+
+proof  (2) {
+        0:r, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        0:[Dist(x,r,c) (2) {0:r, 0:c = 0:c, 2:c, 1:x, 0:r, 1:r}], 1:q
+        =
+        0:c, 2:c, 1:x, 0:r, 1:[Dist(x,r,q) (2) {0:r, 0:q < 0:q, 0:q}]
+        =
+        0:c, 2:[Leaky-identity (1) {0:c, 1:q = 0:l}], 1:x, 0:r, 1:q
+        =
+        0:c, 2:l, 1:[SymD(x,q) (2) {0:x, 1:q = 0:q}], 0:r
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 1:l, 0:r
+}
+
+lem  XOR-leak-< (2) {
+        1:l, 0:r, 0:l
+        <
+        0:l, 1:l, 0:r
+}
+
+proof  (2) {
+        1:l, 0:[F(XOR-leak-<') (2) {0:r, 0:l < 0:l, 1:l, 0:r}]
+        =
+        0:l, 1:[Double-Leak (1) {0:l, 0:l = 0:l}], 0:r
+}
+
+lem  XOR-leak->' (2) {
+        1:l, 0:r, 0:l
+        >
+        0:l, 0:r
+}
+
+proof  (2) {
+        1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:r, 0:l
+        =
+        1:c, 2:q, 0:r, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        1:c, 0:r, 0:c, 1:[Dist(x,r,q) (2) {0:q, 0:q > 0:r, 0:q}]
+        =
+        1:c, 0:[Dist(x,r,c) (2) {0:r, 0:c = 0:c, 2:c, 1:x, 0:r, 1:r}], 1:r, 1:q
+        =
+        1:c, 0:c, 2:c, 1:x, 0:r, 1:[XOR-associative (3) {0:r, 0:r = 1:r, 0:r}], 1:q
+        =
+        1:[Copy-assoc (1) {0:c, 0:c = 0:c, 1:c}], 0:c, 1:x, 0:r, 2:r, 1:r, 1:q
+        =
+        1:c, 0:c, 1:x, 3:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 0:r, 1:r, 1:q
+        =
+        1:c, 0:c, 1:x, 3:d, 0:r, 1:[XOR-unital2 (1) {1:0, 0:r = id}], 1:q
+        =
+        1:[Copy-unital2 (1) {0:c, 1:d = id}], 0:c, 1:x, 0:r, 1:q
+        =
+        0:c, 1:[SymD(x,q) (2) {0:x, 1:q = 0:q}], 0:r
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 0:r
+}
+
+lem  XOR-leak-> (2) {
+        1:l, 0:r, 0:l
+        >
+        0:l, 1:l, 0:r
+}
+
+proof  (2) {
+        1:[Double Leak (1) {0:l = 0:l, 0:l}], 0:r, 0:l
+        =
+        1:l, 0:[XOR-leak->' (2) {1:l, 0:r, 0:l > 0:l, 0:r}]
+}
+
+lem  Example54 (3) {
+        1:l, 0:l, 1:r, 0:r, 0:l
+        =
+        0:l, 1:l, 2:l, 1:r, 0:r
+}
+
+# ==================== #
+# COIN TOSS PROPERTIES #
+# ==================== #
+
+note {The ? counit describes a fair coint toss, producing 50% 0 and 50% 1}
+show  Coint-toss (0) {
+        0:b
+}
+
+lem  Coin-leak< (0) {
+        0:b, 0:q
+        <
+        id
+}
+
+lem  Coin-leak> (0) {
+        0:b, 0:q
+        >
+        id
+}
+
+proof  (0) {
+        0:b, 0:[Dist(x,d,q) (1) {0:q > 0:d}]
+        =
+        0:[Dist(x,b,d) (0) {0:b, 0:d = id}]
+}
+
+lem  Leak-float (0) {
+        0:b, 0:l, 0:d
+        =
+        id
+}
+
+proof  (0) {
+        0:b, 0:[Lid-discard (1) {0:l, 0:d = 0:q}]
+        =
+        0:[{F(Coin-leak>)<>Dist(x,b,q)} (0) {0:b, 0:q = id}]
+}
+
+# =================== #
+# ENCRYPTION EXAMPLES #
+# =================== #
+
+note {Encrypting and decrypting a bit with a key, while leaking the encryption. This is equal to passing the original bit to the recipient, and leaking the encrypted bit separately.}
+lem  Leak-encrypt (2) {
+        0:c, 1:r, 1:l, 0:r
+        =
+        1:c, 0:r, 0:q
+}
+
+proof  (2) {
+        0:c, 1:r, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:r
+        =
+        0:c, 1:[Dist(x,r,c) (2) {0:r, 0:c = 0:c, 2:c, 1:x, 0:r, 1:r}], 0:r, 1:q
+        =
+        0:c, 1:c, 3:c, 2:x, 3:r, 0:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}], 1:q
+        =
+        0:[Copy-assoc (1) {0:c, 1:c = 0:c, 0:c}], 3:c, 2:x, 3:r, 0:r, 0:r, 1:q
+        =
+        0:c, 2:c, 1:x, 0:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 2:r, 0:r, 1:q
+        =
+        0:c, 2:c, 1:x, 0:d, 1:r, 0:[XOR-unital (1) {0:0, 0:r = id}], 1:q
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}], 1:c, 0:x, 1:r, 1:q
+        =
+        1:[Copy-comm (1) {0:c = 0:c, 0:x}], 0:x, 1:r, 1:q
+        =
+        1:c, 0:[SymD(x,r) (3) {1:x, 0:x, 1:r = 0:r, 0:x}], 1:q
+        =
+        1:c, 0:r, 0:[SymD(x,q) (2) {0:x, 1:q = 0:q}]
+}
+
+note {If the used key is randomly generated and not used elsewhere, then leaking only the encrypted bit is equal to leaking nothing.}
+lem  Leak-?encrypt (1) {
+        0:b, 0:c, 1:r, 1:l, 0:r
+        =
+        id
+}
+
+proof  (1) {
+        0:b, 0:[Leak-encrypt (2) {0:c, 1:r, 1:l, 0:r = 1:c, 0:r, 0:q}]
+        =
+        0:c, 0:[XOR-coin (1) {0:b, 0:r = 0:d, 0:b}], 0:q
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}], 0:b, 0:q
+        =
+        0:[{F(Coin-leak>)<>Dist(x,b,q)} (0) {0:b, 0:q = id}]
+}
+
+note {Similarly, leaking only the randomly generated key and nothing else is equal to leaking nothing as well.}
+lem  Leak-?key (1) {
+        0:b, 0:l, 0:c, 1:r, 0:r
+        =
+        id
+}
+
+proof  (1) {
+        0:b, 0:l, 0:[Lemma29 (2) {0:c, 1:r, 0:r = 0:d}]
+        =
+        0:[F(Leak-float) (0) {0:b, 0:l, 0:d = id}]
+}
+
+note {However, if both the key and the encrypted bit is leaked, then the original key is leaked.}
+lem  Leak-?both (1) {
+        0:b, 0:l, 0:c, 1:r, 1:l, 0:r
+        =
+        0:l
+}
+
+proof  (1) {
+        0:b, 0:l, 0:[Leak-encrypt (2) {0:c, 1:r, 1:l, 0:r = 1:c, 0:r, 0:q}]
+        =
+        0:b, 0:l, 1:c, 0:r, 0:[Lid-discard (1) {0:q = 0:l, 0:d}]
+        =
+        0:b, 1:c, 0:[{F(XOR-leak->)<>F(XOR-leak-<)} (2) {0:l, 0:r, 0:l = 0:l, 1:l, 0:r}], 0:d
+        =
+        0:b, 1:c, 0:l, 1:l, 0:[Dist(x,r,d) (2) {0:r, 0:d = 0:d, 0:d}]
+        =
+        0:[F(Leak-float) (0) {0:b, 0:l, 0:d = id}], 0:c, 0:l, 0:d
+        =
+        0:c, 0:[Lid-discard (1) {0:l, 0:d = 0:q}]
+        =
+        0:[F(Leaky-identity) (1) {0:c, 0:q = 0:l}]
+}
+
+note {If the same key is used to encrypt two messages, and both encryptions are leaked, then at least the sum of messages is leaked.}
+lem  2Leak> (2) {
+        1:b, 1:c, 1:c, 3:c, 0:r, 3:r, 0:l, 3:l, 0:r, 1:r
+        >
+        0:c, 2:c, 1:r, 1:q
+}
+
+proof  (2) {
+        1:b, 1:c, 1:c, 0:r, 0:l, 2:[Leak-encrypt (2) {0:c, 1:r, 1:l, 0:r = 1:c, 0:r, 0:q}], 0:r
+        =
+        1:b, 1:c, 0:[F(Leak-encrypt (2) {1:c, 0:r, 0:l, 0:r = 0:c, 1:r, 1:q}], 2:c, 1:r, 1:q
+        =
+        1:b, 1:c, 0:c, 1:r, 3:c, 2:r, 1:[Dist(x,r,q) (2) {0:q, 0:q > 0:r, 0:q}]
+        =
+        1:b, 1:c, 0:c, 1:r, 3:c, 1:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}], 1:q
+        =
+        1:b, 1:c, 0:c, 4:c, 1:[XOR-associative (3) {0:r, 0:r = 1:r, 0:r}], 1:r, 1:q
+        =
+        1:b, 1:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 0:c, 3:c, 1:r, 1:r, 1:q
+        =
+        1:[Dist(x,b,d) (0) {0:b, 0:d = id}], 1:0, 0:c, 3:c, 1:r, 1:r, 1:q
+        =
+        0:c, 2:c, 1:[XOR-unital2 (1) {1:0, 0:r = id}], 1:r, 1:q
+}
+
+note {If the same key is used to encrypt two messages, and both encryptions are leaked, then at most the sum of messages is leaked.}
+lem  2Leak< (2) {
+        1:b, 1:c, 1:c, 3:c, 0:r, 3:r, 0:l, 3:l, 0:r, 1:r
+        <
+        0:c, 2:c, 1:r, 1:q
+}
+
+proof  (2) {
+        1:b, 1:c, 1:c, 0:r, 0:l, 2:[Leak-encrypt (2) {0:c, 1:r, 1:l, 0:r = 1:c, 0:r, 0:q}], 0:r
+        =
+        1:b, 1:c, 0:[F(Leak-encrypt (2) {1:c, 0:r, 0:l, 0:r = 0:c, 1:r, 1:q}], 2:c, 1:r, 1:q
+        =
+        0:c, 1:[XOR-split (1) {1:b, 1:c, 0:r = 0:b, 0:c, 1:r}], 1:q, 2:c, 1:r, 1:q
+        =
+        0:c, 1:b, 3:c, 1:c, 2:[XOR-associative (3) {0:r, 0:r = 1:r, 0:r}], 1:q, 1:q
+        =
+        0:c, 1:b, 3:c, 1:c, 3:r, 2:[Dist(x,r,q) (2) {0:r, 0:q < 0:q, 0:q}], 1:q
+        =
+        0:c, 1:b, 3:c, 2:r, 1:[{Copy-Leak 2<>Dist(x,c,q)} (1) {0:c, 0:q, 0:q = 0:q}], 1:q
+        =
+        0:c, 2:c, 1:r, 1:q, 1:[{F(Coin-leak>))<>Dist(x,b,q)} (0) {0:b, 0:q = id}]
+}
+
+note {So if the same key is used to encrypt two messages, and both encryptions are leaked, then exactly the sum of messages is leaked.}
+lem  2Leak= (2) {
+        1:b, 1:c, 1:c, 3:c, 0:r, 3:r, 0:l, 3:l, 0:r, 1:r, 0:l
+        =
+        0:l, 1:l
+}
+
+proof  (2) {
+        0:[{F(2Leak<<>F(2Leak>} (2) {1:b, 1:c, 1:c, 3:c, 0:r, 3:r, 0:l, 3:l, 0:r, 1:r = 0:c, 2:c, 1:r, 1:q}], 0:l
+        =
+        0:[Lid-Copy2;Lid-Copy (1) {0:c, 0:l = 0:c, 1:l}], 2:c, 1:r, 1:q
+        =
+        0:c, 1:l, 2:c, 1:r, 1:[Lid-discard (1) {0:q = 0:l, 0:d}]
+        =
+        0:c, 2:c, 1:[{F(XOR-leak->)<>F(XOR-leak-<)} (2) {0:l, 0:r, 0:l = 0:l, 1:l, 0:r}], 1:d
+        =
+        0:c, 2:c, 1:l, 2:l, 1:[Dist(x,r,d) (2) {0:r, 0:d = 0:d, 0:d}]
+        =
+        0:c, 2:c, 1:[Lid-discard (1) {0:l, 0:d = 0:q}], 1:l, 1:d
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 1:c, 1:l, 1:d
+        =
+        0:l, 1:c, 1:[Lid-discard (1) {0:l, 0:d = 0:q}]
+        =
+        0:l, 1:[F(Leaky-identity) (1) {0:c, 0:q = 0:l}]
+}
+
+
+
+

@@ -1,0 +1,55 @@
+# Commutative group with uniform element generator #
+
+Import{SGAI/3-com-c}
+
+Operation{k}{}{0}{1}
+
+
+Name{Uniform|Generating a uniform element}
+Play{0}{0.k;}
+
+Name{Gen-total|Discarding a uniformly generated element yields no side effects}
+Definition{0}{0.k;0.d;}{}
+
+Schema{naturality}{x.d}{k}
+
+Name{Scramble|Group operation over uniform element completely scrambles the other input}
+Definition{1}{
+	0.k;
+	0.s;
+}{
+	0.d;
+	0.k;
+}
+
+Name{Lem-scramble}
+Lemma{1}{
+	1.k;
+	0.s;
+}{
+	0.d;
+	0.k;
+}
+
+Schema{flip}{k}{k}
+
+Name{Lem-gen-inv}
+Lemma{0}{
+	0.k;
+	0.n;
+}{
+	0.k;
+}
+Trace{0}{
+0.k;0.n;0.{1}{Group-neutral}{}={0.e;0.s;};
+|0.k;0.{0}{Gen-total}{}={0.k;0.d;};0.n;0.e;0.s;
+|0.k;0.k;1.n;0.{1}{Lem-inverse}{0.d;0.e;}={0.c;1.n;0.s;};0.s;
+|0.k;0.k;1.n;0.c;1.n;0.{3}{Group-assoc}{0.s;0.s;}={1.s;0.s;};
+|0.k;0.k;0.c;1.{2}{F(Lem-inv-Op)}{0.n;1.n;0.s;}={0.s;0.n;};0.s;
+|0.k;0.c;1.{1}{Lem-scramble}{1.k;0.s;}={0.d;0.k;};1.n;0.s;
+|0.k;0.{1}{Copy-unital2}{0.c;1.d;}={};1.k;1.n;0.s;
+|0.k;0.n;0.{1}{Scramble}{0.k;0.s;}={0.d;0.k;};
+|0.k;0.{1}{Inv-total}{0.n;0.d;}={0.d;};0.k;
+|0.{0}{Gen-total}{0.k;0.d;}={};0.k;
+}
+

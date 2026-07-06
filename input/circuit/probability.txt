@@ -1,0 +1,30 @@
+# Boolean circuits: taken partially from A Complete Axiomatisation of Equivalence for Discrete Probabilistic Programming  #
+
+# Import the copy-discard category theory #
+import circuit/extended
+
+# Multiplex #
+
+Operation{m}{}{3}{1}
+
+Play{3}{0.m;}
+
+Define{3}{0.m;}{0.c;0.n;1.x;0.a;1.a;0.o;}
+
+Schema{naturality}{x.c}{x.c.d.n.a.o.0.1.r.f.m}
+#schema{naturality}{x.d}{x.c.d.n.a.o.0.1.r.f}#
+
+# probability 50/50 #
+Operation{b}{}{0}{1}
+
+Play{0}{0.b;}
+
+
+Define{0}{0.b;0.n;}{0.b;}
+
+Lemma{1}{0.b;0.a;}{0.b;1.n;0.o;0.n;}
+
+Lemma{1}{0.b;0.r;}{0.d;0.b;}
+
+
+

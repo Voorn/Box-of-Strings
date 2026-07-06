@@ -1,0 +1,26 @@
+# Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
+
+Import{SGAI/4-prob-c}
+Import{SGAI/5-leak-c}
+
+
+
+Lemma{2}{
+	1.l;
+	0.s;
+	0.l;
+}<{
+	0.l;
+	1.l;
+	0.s;
+}
+
+Lemma{2}{
+	1.l;
+	0.s;
+	0.l;
+}>{
+	0.l;
+	1.l;
+	0.s;
+}

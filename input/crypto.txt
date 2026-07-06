@@ -1,7 +1,7 @@
 # Show-case of symmetric key encryption with key-gen ? and encryption/decryption operation s #
 
 # Import the copy-discard category theory #
-Import{Cartesian}
+Import{theory/cartesian}
 
 # SYMMETRIC ENCRYPTION & KEYGEN #
 Operation{s}{}{2}{1}
@@ -181,8 +181,6 @@ Definition{2}{
 	0.d;
 	0.d;
 }
-
-
 
 
 

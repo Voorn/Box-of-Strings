@@ -1,0 +1,101 @@
+# Adds a copy operation to the theory of symmetry. #
+
+# Dependencies #
+import theory/symmetry
+
+# Operations #
+op  c : 1 -> 2  [2]
+op  d : 1 -> 0  [2]
+
+
+# ------------------------------------- #
+
+note {Operation which copies resources}
+show Copy (1) {0:c}
+
+note {To make three copies of a resource, copy once and then copy one of the outputs again. This can be done in two ways, which we consider as doing the same thing.}
+def Copy-associative (1) {0:c,0:c = 0:c,1:c}
+
+note  {The order of the copied resource should not matter.}
+def Copy-commutative (1) {0:c,0:x = 0:c}
+
+lem Copy-interchange (1) {0:c,0:c,2:c,1:x = 0:c,0:c,2:c}
+
+proof  (1) {
+    0:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:c, 1:x
+    =
+    0:c, 1:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 1:x
+    =
+    0:c, 1:c, 1:[Copy-commutative (1) {0:c, 0:x = 0:c}]
+    =
+    0:c, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}]
+    =
+    0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 2:c
+}
+
+note  {This equations is automatically added using the symmetry schema, since we work in a symmetric monoidal category.}
+lem  symmetry-copy (2) {
+    0:x, 0:c
+    =
+    1:c, 0:x, 1:x
+}
+lem  Copy-wire-down (2) {
+        0:x, 0:c, 1:x
+        =
+        1:c, 0:x
+}
+
+proof  (2) {
+        0:[SymU(x,c) (2) {0:x, 0:c = 1:c, 0:x, 1:x}], 1:x
+        =
+        1:c, 0:x, 1:[DoubleSwap (2) {0:x, 0:x = id}]
+}
+
+lem-hide  Copy-wire-up (2) {
+        0:x, 1:c, 0:x
+        =
+        0:c, 1:x
+}
+
+
+note {We add an operation which discards resources}
+show  Discard (1) {
+        0:d
+}
+
+note {If we copy and then discard one of the copies, it is as if we never copied anything.}
+def  Copy-unital (1) {
+        0:c, 0:d
+        =
+        id
+}
+note  {This equations is automatically added using the symmetry schema, since we work in a symmetric monoidal category.}
+lem  symmetry-discard (2) {
+        0:x, 0:d
+        =
+        1:d
+}
+
+lem  Copy-unital2 (1) {
+        0:c, 1:d
+        =
+        id
+}
+
+proof  (1) {
+        0:[Copy-commutative (1) {0:c = 0:c, 0:x}], 1:d
+        =
+        0:c, 0:[SymD(x,d) (2) {0:x, 1:d = 0:d}]
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}]
+}
+
+# Neither are fully natural, we specify which operations are deterministic and total #
+# declare x,c,d are deterministic #
+schema naturality {x,c} {x,c,d}
+
+# declares x,c,d are total #
+schema naturality {x,d} {x,c,d}
+
+
+

@@ -1,0 +1,85 @@
+# Boolean probability circuits: taken partially from A Complete Axiomatisation of Equivalence for Discrete Probabilistic Programming  #
+
+# Import the copy-discard category theory #
+Import{theory/cartesian}
+
+# Not Gate #
+Operation{n}{}{1}{1}
+
+# Double not #
+D{1}{0.n;0.n;}{}
+
+# AND gate #
+Operation{a}{}{2}{1}
+
+# Associativity #
+Definition{3}{0.a;0.a;}{1.a;0.a;}
+
+# Commutativity #
+Definition{2}{0.x;0.a;}{0.a;}
+
+# OR-Gate (composite) #
+Operation{o}{}{2}{1}
+
+# Defining or gate as composite #
+Definition{2}{0.o;}{0.n;1.n;0.a;0.n;}
+
+# Lemma{2}{0.a;}{0.n;1.n;0.o;0.n;} #
+Lemma{2}{0.x;0.o;}{0.o;}
+Lemma{3}{0.o;0.o;}{1.o;0.o;}
+
+# Lemma{3}{0.o;0.n;0.a;}{1.o;0.o;} #
+
+# Lemma{3}{0.o;0.n;0.a;}{0.n;1.n;0.a;1.a;} #
+
+# 1 gate #
+Operation{1}{}{0}{1}
+
+# 0 gate (composite) #
+Operation{0}{}{0}{1}
+Definition{0}{0.0;}{0.1;0.n;}
+
+Lemma{0}{0.1;}{0.1;0.n;}
+
+Definition{1}{0.1;0.a;}{}
+Definition{1}{0.c;0.a;}{}
+Definition{1}{0.c;1.n;0.a;}{0.d;0.0;}
+Definition{3}{1.o;0.a;}{0.c;1.x;0.o;1.o;0.a;}
+
+# === PROBABILISTIC COMPONENT (CausCirc) === #
+
+# source: b emits 1 with probability p, 0 with probability (1-p) #
+Operation{b}{}{0}{1}
+
+# independence: two independent sources #
+Definition{0}{0.b;0.c;0.b;0.c;}{0.b;0.b;}
+
+Definition{0}{0.b;0.1;0.a;}{0.b;}
+
+Definition{1}{0.b;0.a;}{}
+Definition{2}{0.b;0.a;1.0;}{}
+Definition{2}{0.b;0.a;0.o;}{}
+Definition{0}{0.b;0.c;}{}
+# === CONDITIONING COMPONENT (ProbCirc) === #
+
+# Equals constraint: constrains inputs to be equal, outputs the shared value #
+# e : 2 -> 1 #
+Operation{e}{2}{2}{1}
+
+# Equals is symmetric #
+Definition{2}{0.x;0.e;}{0.e;}
+
+# Equals is idempotent #
+Definition{1}{0.c;0.e;}{}
+
+Definition{2}{
+	0.b;
+	0.e;
+	1.n;
+	0.n;
+}{
+	0.b;
+	0.e;
+	1.n;
+	0.n;
+}

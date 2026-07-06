@@ -1,0 +1,62 @@
+# Boolean circuits: taken partially from A Complete Axiomatisation of Equivalence for Discrete Probabilistic Programming  #
+
+# Import the copy-discard category theory #
+Import{Cartesian}
+
+# Not Gate #
+Operation{n}{}{1}{1}
+
+# Double not #
+D{1}{0.n;0.n;}{}
+
+# AND gate #
+Operation{a}{}{2}{1}
+
+# Associativity #
+Definition{3}{0.a;0.a;}{1.a;0.a;}
+
+# Commutativity #
+Definition{2}{0.x;0.a;}{0.a;}
+
+# OR-Gate (composite) #
+Operation{o}{}{2}{1}
+
+# Defining or gate as composite #
+Definition{2}{0.o;}{0.n;1.n;0.a;0.n;}
+
+Lemma{2}{0.a;}{0.n;1.n;0.o;0.n;}
+Lemma{2}{0.x;0.o;}{0.o;}
+Lemma{3}{0.o;0.o;}{1.o;0.o;}
+
+# Lemma{3}{0.o;0.n;0.a;}{1.o;0.o;} #
+Lemma{3}{0.o;0.n;0.a;}{0.n;1.n;0.a;1.a;}
+
+# 1 gate #
+Operation{1}{}{0}{1}
+
+# 0 gate (composite) #
+Operation{0}{}{0}{1}
+Definition{0}{0.0;}{0.1;0.n;}
+
+Lemma{0}{0.1;}{0.1;0.n;}
+
+Definition{1}{0.1;0.a;}{}
+Definition{1}{0.c;0.a;}{}
+Definition{1}{0.c;1.n;0.a;}{0.d;0.0;}
+Definition{3}{1.o;0.a;}{0.c;1.x;0.o;1.o;0.a;}
+
+
+# ========================================== #
+# Going into Stress testing, bigger circuits #
+# ========================================== #
+
+# XOR (composite) #
+Operation{r}{}{2}{1}
+Definition{2}{0.r;}{0.c;2.c;1.a;1.n;1.c;0.a;1.a;0.o;}
+
+# Full adder (composite), taken from paper: Smaller Circuits for Bit Addition #
+Operation{f}{}{3}{2}
+Definition{3}{0.f;}{0.c;2.c;1.r;2.r;2.c;1.x;0.r;1.o;0.c;1.r;}
+
+# Three bit adder (can't unfold because of drawing issues, will try to fix), example equation doesn't hold #
+Example{6}{2.x;1.x;3.x;0.0;0.f;1.f;2.f;}{0.d;0.d;}

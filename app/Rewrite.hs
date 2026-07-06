@@ -5,175 +5,6 @@ import Data.Maybe
 
 -- project libraries
 import Morph
-import Par
-
--- =============================
--- Rewrite rules and theory
--- =============================
-
--- addRelats :: [Relat] -> [[Morph]] -> [[Morph]]
--- addRelats [] equiv = equiv
--- addRelats (Equ m n : relat) equiv = addEquiv (insertSort m , insertSort n) (addRelats relat equiv)
--- addRelats (Pre {} : relat) equiv = addRelats relat equiv
--- addRelats (Erp {} : relat) equiv = addRelats relat equiv
-
-
-addrelClass :: [Relat] -> Par Morph -> Par Morph
-addrelClass [] par = par
-addrelClass ((MEqual , m , n)   : relat) par    = addeqClass (cleanMorph m , cleanMorph n) (addrelClass relat par)
-addrelClass ((MLarger , m , n)  : relat) par    = addpreClass (cleanMorph m , cleanMorph n) (addrelClass relat par)
-addrelClass ((MSmaller , m , n) : relat) par    = addpreClass (cleanMorph n , cleanMorph m) (addrelClass relat par)
-
-
--- Generate equivalence classes from equations
-addEquiv :: (Morph , Morph) -> [[Morph]] -> [[Morph]]
-addEquiv (m , n) [] = [addSet m [n]]
-addEquiv (m , n) (s : l)
-    |   inSet m s       =   addSet n s : l
-    |   inSet n s       =   addSet m s : l
-    |   otherwise       =   s : addEquiv (m , n) l
-
-genEquiv :: [(Morph , Morph)] -> [[Morph]]
-genEquiv = foldr addEquiv []
-
-cleanEquiv :: Ord a => [[a]] -> [[a]]
-cleanEquiv v = reverse (foldr (addClass' . sortSet) [] v)
-
-addClass' :: Ord a => [a] -> [[a]] -> [[a]]
-addClass' l [] = [l]
-addClass' l (r : v)
-    |   intSet l r      =   addClass' (joinSet l r) v
-    |   otherwise       =   r : addClass' l v
-
--- Extract equations from equivalence classes 
-rewriteClean :: [[Morph]] -> [(Morph , Morph)]
-rewriteClean x = rewriteExp (genEquiv (rewriteExp x))
-
-rewriteExp :: [[Morph]] -> [(Morph , Morph)]
-rewriteExp [] = []
-rewriteExp ([] : l) = rewriteExp l
-rewriteExp ([_] : l) = rewriteExp l
-rewriteExp ((a : b : x) : l) = (a , b) : rewriteExp' a (b : x) ++ rewriteExp l
-
-rewriteExp' :: Morph -> [Morph] -> [(Morph , Morph)]
-rewriteExp' _ [] = []
-rewriteExp' first [m] = [(m , first)]
-rewriteExp' first (m : n : l) = (m , n) : rewriteExp' first (n : l)
-
-
-nextL :: a -> [a] -> a
-nextL _ (_ : y : _) = y
-nextL x _ = x
-
-lastL :: a -> [a] -> a
-lastL x [] = x
-lastL _ [y] = y
-lastL _ (x : l) = lastL x l
-
--- Finding the next and the previous morphism
-rewrite :: MR -> Par Morph -> Rew -> Morph -> Rew
-rewrite moder par cur his = nextL cur (extractRew moder cur his par)
-    --case poppers m rew of
-    --Just (_ , x)    ->  x
-    --_               ->  m
-
-dewrite :: MR -> Par Morph -> Rew -> Morph -> Rew
-dewrite moder par cur his = lastL cur (extractRew moder cur his par)
-
-
-rewrite' :: Morph -> [(Morph , Morph)] -> Morph
-rewrite' m [] = m
-rewrite' m ((n , p) : l)
-    |   m == n      =   p
-    |   otherwise   =   rewrite' m l
-
---dewrite :: [[Morph]] -> Morph -> Morph
---dewrite rew m = case poppers m rew of
---    Just (x , _)    ->  x
---    _               ->  m
-
-dewrite' :: Morph -> [(Morph , Morph)] -> Morph
-dewrite' m [] = m
-dewrite' m ((n , p) : l)
-    |   m == p      =   n
-    |   otherwise   =   dewrite' m l
-
-laster :: a -> [a] -> a
-laster x [] = x
-laster _ [y] = y
-laster _ (y : l) = laster y l
-
-firster :: a -> [a] -> a
-firster x [] = x
-firster _ (y : _) = y
-
-poppers :: Eq a => a -> [[a]] -> Maybe (a , a)
-poppers _ []        =   Nothing
-poppers a (x : l)   =   case popper a x of
-    Just y          ->  Just y
-    Nothing         ->  poppers a l
-
-popper :: Eq a => a -> [a] -> Maybe (a , a)
-popper a (b : r)    =   popper' a [] b r
-popper _ _          =   Nothing
-
-popper' :: Eq a => a -> [a] -> a -> [a] -> Maybe (a , a)
-popper' _ [] _ []       =   Nothing
-popper' a l b []
-    |   a == b      =   Just (firster b l , laster b l)
-    |   otherwise   =   Nothing
-popper' a l b (c : r)
-    |   a == b      =   Just (c , laster c (r ++ l))
-    |   otherwise   =   popper' a (l ++ [b]) c r
-
-
-
-extractRew :: MR -> Rew -> Morph -> Par Morph -> [Rew]
-extractRew moder r m par = r : findCycle r [] (extractRew' moder m par)
-
-extractRew' :: MR -> Morph -> Par Morph -> [Rew]
-extractRew' MEqual m par =
-    let (cla , _ , _) = findClassI m par in
-        RI m : fmap (RS MEqual) (findCycle m [] cla)
-extractRew' MLarger m par =
-    let (cla , poi , _) = findClassI m par in
-        RI m : fmap (RS MEqual) (findCycle m [] cla) ++ fmap (RS MLarger) (allPoint par poi)
-extractRew' MSmaller m par =
-    let (cla , _ , i) = findClassI m par in
-        RI m : fmap (RS MEqual) (findCycle m [] cla) ++ fmap (RS MSmaller) (llaPoint par i)
-
-allPoint :: Par a -> Set Int -> [a]
-allPoint _ [] = []
-allPoint par (i : l) = fst (lookClass i par) ++ allPoint par l
-
-llaPoint :: Par a -> Int -> [a]
-llaPoint [] _ = []
-llaPoint ((s , p) : r) i
-    |   inSet i p   =   s ++ llaPoint r i
-    |   otherwise   =   llaPoint r i
-
-findCycle :: Eq a => a -> [a] -> [a] -> [a]
-findCycle _ l [] = l
-findCycle m l (n : r)
-    |   m == n      =   r ++ l
-    |   otherwise   =   findCycle m (l ++ [n]) r
-
-findClassI :: Ord a => a -> Par a -> (Set a , Set Int , Int)
-findClassI _ [] = ([] , [] , 0)
-findClassI a ((s , p) : l)
-    |   inSet a s   =   (s , p , 0)
-    |   otherwise   =   let (x , y , z) = findClassI a l in (x , y , z+1)
-
-
-
-
-
-equivPop :: Eq a => a -> [a] -> [[a]] -> [a]
-equivPop _ _ [] = []
-equivPop m _ ([] : l) = equivPop m [] l
-equivPop m r ((x : l) : w)
-    |   m == x          =   l ++ r
-    |   otherwise       =   equivPop m (r ++ [x]) (l : w)
 
 
 -- =========================================
@@ -378,8 +209,8 @@ matchGo l r =   let (fir1 , l1 , r1) = matchStripS l r in
 foldGo :: Int -> ([(Int , Oper , Int , Int)] , [(Int , Oper , Int , Int)] , [(Int , Oper , Int)] , [(Int , Oper , Int)]) -> (Morph , Morph)
 foldGo i (fir , las , l , r) =
     let (a , m , n) = subStrips l r in
-    (foldMorph i (fmap (\(x , y , _ , _) -> (x , y)) fir ++ (a , Comp (RS MEqual m) m) : fmap (\(x , y , _ , _) -> (x , y)) las) ,
-     foldMorph i (fmap (\(x , y , _ , _) -> (x , y)) fir ++ (a , Comp (RS MEqual n) n) : fmap (\(x , y , _ , _) -> (x , y)) las))
+    (foldMorph i (fmap (\(x , y , _ , _) -> (x , y)) fir ++ (a , Comp (RI m) m) : fmap (\(x , y , _ , _) -> (x , y)) las) ,
+     foldMorph i (fmap (\(x , y , _ , _) -> (x , y)) fir ++ (a , Comp (RI n) n) : fmap (\(x , y , _ , _) -> (x , y)) las))
 
 permGo :: ([(Int , Oper , Int , Int)] , [(Int , Oper , Int , Int)] , [(Int , Oper , Int)] , [(Int , Oper , Int)]) -> ([Int] , [Int])
 permGo (fir , las , m , n) = (  fmap (\(_ , _ , z , _) -> z) fir ++ fmap (\(_ , _ , z) -> z) m ++ fmap (\(_ , _ , z , _) -> z) las ,
@@ -396,12 +227,14 @@ permZip i j (a : l) (b : r)
 permCoor :: Int -> Int -> [Int] -> [(Float , Float)] -> [(Float , Float)]
 permCoor i j x y = fmap snd (sortSet (permZip i j x y))
 
-coorGo :: Int -> ([(Int , Oper , Int , Int)] , [(Int , Oper , Int , Int)] , [(Int , Oper , Int)] , [(Int , Oper , Int)]) -> ([(Float , Float)] , [(Float , Float)])
+coorGo :: Int -> ([(Int , Oper , Int , Int)] , [(Int , Oper , Int , Int)] , [(Int , Oper , Int)] , [(Int , Oper , Int)]) 
+    -> ([(Float , Float)] , [(Float , Float)])
 coorGo i (fir , las , l , r) =
     let (m , n) = foldGo i (fir , las , l , r) in
     let (p , q) = permGo (fir , las , l , r) in
     let (a , b , c) = (length fir , length l , length r) in
         (permCoor a b p (coorMorph m) , permCoor a c q (coorMorph n))
+
 
 -- coordinates for transition
 transCoor :: Morph -> Morph -> ([(Float , Float)] , [(Float , Float)])
@@ -430,3 +263,99 @@ subStrips l r = let (x , y , _) = typeStrip' l in
                 let m = foldMorph (w-v) (fmap (\(a , b , _) -> (a-x , b)) l) in
                 let n = foldMorph (w-v) (fmap (\(a , b , _) -> (a-v , b)) r) in
                     (v , m , n)
+
+
+
+-- =================================
+-- || ANIMATION: COORDINATE STUFF ||
+-- =================================
+
+-- permuter function 
+type Perm = [ Int ]
+
+applyPerm :: a -> Perm -> [a] -> [a]
+applyPerm _ [] _ = []
+applyPerm a (i : p) l = lookList i a l : applyPerm a p l
+
+applyPermCoor :: Perm -> [(Float , Float , Bool)] -> [(Float , Float , Bool)]
+applyPermCoor p coor = applyPerm (0 , 0 , False) (reverse p) (reverse coor)
+
+compPerm :: Perm -> Perm -> Perm 
+compPerm p q = applyPerm 0 q p 
+
+-- invers permutation function
+reversePerm :: Perm -> Perm 
+reversePerm p = reversePerm' p 0 p 
+
+reversePerm' :: Perm -> Int -> Perm -> Perm 
+reversePerm' [] _ p = p
+reversePerm' (i : q) j p = reversePerm' q (j+1) (updateList i j p)
+
+
+
+
+keepSortMorph :: Morph -> [(Float, Float , Bool)] -> (Morph , [(Float, Float , Bool)])
+keepSortMorph m l = let (n , perm) = sortMall m in 
+    (n , applyPerm (0 , 0 , False) perm (reverse l))
+
+keepMatchMorph :: Morph -> Morph -> Perm
+keepMatchMorph m n = 
+    let (_ , perm) = sortMall m in 
+    let (_ , pern) = sortMall n in 
+        compPerm (reverse perm) (reversePerm (reverse pern))
+
+keepMatchCoor :: Morph -> Morph -> [(Float, Float , Bool)] -> [(Float, Float , Bool)]
+keepMatchCoor m n coor = 
+    let perm = keepMatchMorph m n in
+        applyPermCoor perm coor
+
+
+-- box coordinate function
+boxCoorPre :: Morph -> [(Float , Float)]
+boxCoorPre m = boxCoorPre' m (coorMorph m)
+
+boxCoorPre' :: Morph -> [(Float , Float)] -> [(Float , Float)]
+boxCoorPre' (Start _) _ = []
+boxCoorPre' (Op m _ _) [] = (0 , 0) : boxCoorPre' m []
+boxCoorPre' (Op m _ (Comp _ (Start _))) (_ : l) = boxCoorPre' m l
+boxCoorPre' (Op m i (Comp w (Op n _ _))) (p : l) = p : boxCoorPre' (Op m i (Comp w n)) (p : l)
+boxCoorPre' (Op m _ _) (p : l) = p : boxCoorPre' m l
+
+
+boxCoorPost :: Morph -> [(Float , Float)]
+boxCoorPost m = boxCoorPost' m (coorMorph m)
+
+boxCoorPost' :: Morph -> [(Float , Float)] -> [(Float , Float)]
+boxCoorPost' (Start _) _ = []
+boxCoorPost' (Op m _ _) [] = (0 , 0) : boxCoorPost' m []
+boxCoorPost' (Op m i (Comp (RS _ n _ _) _)) l = boxCoorPost' (Op m i (Comp (RI n) n)) l
+boxCoorPost' (Op m _ (Comp (RI (Start _)) _)) (_ : l) = boxCoorPost' m l
+boxCoorPost' (Op m i (Comp (RI (Op n _ _)) k)) (p : l) = p : boxCoorPost' (Op m i (Comp (RI n) k)) (p : l)
+boxCoorPost' (Op m _ _) (p : l) = p : boxCoorPost' m l
+
+
+-- UNUSED ?
+
+
+-- sort out the morph
+coorsortMorph :: Morph -> [(Float, Float , Bool)] -> (Morph , [(Float, Float , Bool)])
+coorsortMorph m coor = let n = knayMorph m in (n , coormatchMorph m (knayMorph m) coor)
+--    let (n , perm) = knayMorphRem m in
+--    let door = applyPermCoor perm coor in 
+--        (n , door)
+
+
+
+
+permmatchMorph :: Morph -> Morph -> Perm
+permmatchMorph m n = 
+    let (_ , perm) = knayMorphRem m in 
+    let (_ , pern) = knayMorphRem n in 
+        compPerm perm (reversePerm pern)
+
+coormatchMorph :: Morph -> Morph -> [(Float, Float , Bool)] -> [(Float, Float , Bool)]
+coormatchMorph m n coor = 
+    let perm = permmatchMorph m n in
+        applyPermCoor perm coor
+
+

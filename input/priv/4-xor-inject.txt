@@ -1,0 +1,47 @@
+# XOR-calculus with injections #
+
+Import{priv/1-xor-extended}
+Import{priv/2-xor-prob}
+
+op  i : 0 -> 1  [inject]
+op  v : 1 -> 1  [inject]
+
+Schema{>naturality}{x.i}{}
+
+note {Adversary can choose input for the injection unit. We want resilience against any possible injection.}
+show  Injection (0) {
+        0:i
+}
+
+note {We prove that injections, when isolated and not used by the process, can be removed. One direction is proven by assumption.}
+lem  D-inject< (0) {
+        0:i, 0:d
+        <
+        id
+}
+
+lem  Lemma51 (0) {
+        0:i, 0:d
+        >
+        id
+}
+
+
+note {The injection identity captures the notion of an adversary corrupting and changing a resource. What this entails depends on choice. For instance in this example, we only give the adversary the option to keep or flip the bit.}
+def  Inid (1) {
+        0:v
+        =
+        0:i, 0:r
+}
+
+lem  Lemma53 (1) {
+        0:v
+        >
+        id
+}
+
+lem  Lemma54 (1) {
+        0:v
+        >
+        0:n
+}

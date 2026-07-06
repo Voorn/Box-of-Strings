@@ -1,0 +1,13 @@
+# Empty file #
+
+
+
+op  f : 2 -> 1
+
+op  g : 1 -> 2
+
+op  h : 5 -> 5
+
+op  c : 9 -> 8
+
+op  s : 8 -> 9

@@ -1,0 +1,26 @@
+
+# Import the copy-discard category theory #
+import  circuit/extended
+
+
+#Schema{naturality}{x.c}{x.c.d.n.a.o.0.1.r.f.m}#
+Schema{naturality}{x.d}{x.c.d.n.a.o.0.1.r.f}
+
+Operation{e}{2}{2}{1}
+
+Name{Equal|Conditional checks whether the two variables are equal or not, reasing an exception if not. If equal, it returns the value both variables hold}
+Play{2}{0.e;}
+
+
+Define{3}{0.e;0.e;}{1.e;0.e;}
+Define{2}{0.x;0.e;}{0.e;}
+
+Name{Not-1to1|The not function is "1to1", or "injective". This means that equality of outputs can be translated to equality of inputs. Note that for any deterministic function, equality on inputs can be translated to equality on outputs, making the rewrite bidirectional}
+Define{2}{0.n;1.n;0.e;}{0.e;0.n;}
+
+Define{2}{0.c;1.e;}{0.e;0.c;}
+Assume{2}{1.c;0.e;}{0.e;0.c;}
+
+Define{3}{0.e;0.r;}{2.c;1.x;0.r;1.r;0.e;}
+
+
