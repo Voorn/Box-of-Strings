@@ -1,0 +1,49 @@
+import  theory/cartesian
+
+op  o : 2 -> 1 [col-s]
+
+op  k : 0 -> 1 [0]
+
+op  s : 0 -> 1 [0]
+
+def  k-combinator (2) {
+    0:k, 0:o, 0:o
+    =
+    1:d
+}
+
+def  s-combinator (3) {
+    0:s, 0:o, 0:o, 0:o
+    =
+    2:c, 1:x, 0:o, 1:o, 0:o
+}
+
+op  i : 0 -> 1
+
+def  i-def (0) {
+    0:i
+    =
+    0:s, 1:k, 2:k, 0:o, 0:o
+}
+
+lem  i-prop (1) {
+    0:i, 0:o
+    =
+    id
+}
+
+proof  (1) {
+	0:[i-def (0) {0:i = 0:s, 1:k, 0:o, 1:k, 0:o}], 0:o
+	=
+	0:k, 1:k, 0:[s-combinator (3) {0:s, 0:o, 0:o, 0:o = 2:c, 1:x, 0:o, 1:o, 0:o}]
+	=
+	0:k, 1:c, 0:x, 1:o, 0:[k-combinator (2) {0:k, 0:o, 0:o = 1:d}]
+	=
+	0:k, 1:c, 0:x, 1:[Dist(x,d,o) (2) {0:o, 0:d = 0:d, 0:d}]
+	=
+	0:k, 1:c, 0:[SymD(x,d) (2) {0:x, 1:d = 0:d}], 1:d
+	=
+	0:[Dist(x,d,k) (0) {0:k, 0:d = id}], 0:c, 1:d
+	=
+	0:[Copy-unital2 (1) {0:c, 1:d = id}]
+}

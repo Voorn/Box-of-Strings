@@ -14,11 +14,12 @@ module DSL.ProbabilisticMonad
   , liftDist
   , strengthL
   , strengthR
+  , kleisProb
   ) where
 
 import Control.Monad.Except
 import qualified Data.Map as M
-import Data.List (intercalate)
+import Data.List (intercalate , sort)
 
 -- =====================================================
 -- PROBABILITY DISTRIBUTION
@@ -50,6 +51,17 @@ evalProb pred (Dist xs) = sum [p | (x, p) <- xs, pred x]
 
 conditionOn :: Ord a => (a -> Bool) -> Dist a -> Dist a
 conditionOn pred (Dist xs) = Dist . normalize $ filter (pred . fst) xs
+
+--
+-- tidyDist :: Ord a => Dist a -> Dist a
+-- tidyDist (Dist l) = Dist (tidyDist' (sort l))
+
+
+-- tidyDist' :: Ord a => [(a, Prob)] -> [(a, Prob)]
+-- tidyDist' ((a , p) : (b , q) : r)
+--     |   a == b      =   tidyDist' ((a , p + q) : r)
+--     |   otherwise   =   (a , p) : tidyDist' ((b , q) : r)
+-- tidyDist' l = l
 
 -- =====================================================
 -- DISTRIBUTION HELPERS
@@ -83,6 +95,12 @@ instance Monad Dist where
     | (x, px) <- xs
     , (y, py) <- unDist (f x)
     ]
+
+kleisProb :: Ord b => Dist a -> (a -> Dist b) -> Dist b
+kleisProb p f = squishDist (p >>= \x -> f x)
+
+eqProb :: Ord a => Dist a -> Dist a -> Bool
+eqProb d e = squishDist d == squishDist e 
 
 -- =====================================================
 -- PROBABILISTIC DSL MONAD

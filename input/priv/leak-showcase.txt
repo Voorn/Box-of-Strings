@@ -1,0 +1,43 @@
+import  priv/3-com-leak
+
+note {Most data resource theories use as fundamental constructors: the swap operation, the copy operation, and the delete operation.}
+show resource (4) {
+    0:x, 2:c, 4:d
+}
+
+note {We consider the group modulo some natural number n, with unit 0 operation, addition modulo n, and negation modulo n.}
+show group (3) {
+    0:e, 1:o, 2:n
+}
+
+note {We add to this a uniform probabilistic group element generator. We assume this scrambles any resource when added to it, and it can be derived that negating it maintains the uniform distribution.}
+show random (1) {
+    0:b, 2:b, 0:o, 1:n
+}
+
+note {To analyse information leakage, we add an operation marking a resource that has been fully leaked to some adversary. This is endowed with an information theoretic order which expresses when the same or more information is leaked.}
+show leaks (1) {
+    0:l
+}
+
+note {We look at some provable equations. First, note that the location of the leak does not matter, only the explicit resource which it is attached to.}
+show  leaks-resource (3) {
+    0:l, 2:l, 0:x, 2:c
+}
+
+note {An interesting property: Once fully leaked, leaking the same resource again has no extra effect.}
+show leaks-double (1) {
+    0:l, 0:l
+}
+
+note {Regarding group operations, note that if the adversary knows two out of three resources in an "a+b=c" equation, they can derive the third. Similarly, an adversary can derive "-a" from "a" and vice versa.}
+show  leaks-groups (3) {
+    0:l, 1:l, 2:l, 0:o, 1:n
+}
+
+note {Last but not least: an isolated leak, one not connected to the wider context, is inconsequential.}
+show  leaks-random (0) {
+    0:b, 0:l, 0:d
+}
+
+

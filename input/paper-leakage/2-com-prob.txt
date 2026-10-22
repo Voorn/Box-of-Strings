@@ -1,0 +1,108 @@
+# Layer 2: Commutative group with uniform generatr, #
+# or commutative Hopf algebra with integral #
+
+# Dependencies #
+import  paper/1-com
+
+op  k : 0 -> 1  
+
+
+note {Generating a uniform element}
+show  Uniform (0) {
+        0:k
+}
+
+
+note {Discarding a uniformly generated element yields no side effects}
+def  Gen-total (0) {
+        0:k, 0:d
+        =
+        id
+}
+
+
+note {Group operation over uniform element completely scrambles the other input}
+def  Scramble (1) {
+        0:k, 0:s
+        =
+        0:d, 0:k
+}
+
+
+lem  Lem-scramble (1) {
+        1:k, 0:s
+        =
+        0:d, 0:k
+}
+
+proof  (1) {
+	1:k, 0:[Group-commutative (2) {0:s = 0:x, 0:s}]
+	=
+	0:[SymU(x,k) (1) {1:k, 0:x = 0:k}], 0:s
+	=
+	0:[Scramble (1) {0:k, 0:s = 0:d, 0:k}]
+}
+
+
+
+lem  Lem-gen-inv (0) {
+        0:k, 0:n
+        =
+        0:k
+}
+
+
+proof  (0) {
+          0:k, 0:n, 0:[Group-neutral (1) {id = 0:e, 0:s}]
+        = 0:k, 0:[Gen-total (0) {id = 0:k, 0:d}], 0:n, 0:e, 0:s
+        = 0:k, 0:k, 1:n, 0:[Lem-inverse (1) {0:d, 0:e = 0:c, 1:n, 0:s}], 0:s
+        = 0:k, 0:k, 1:n, 0:c, 1:n, 0:[Group-assoc (3) {0:s, 0:s = 1:s, 0:s}]
+        = 0:k, 0:k, 0:c, 1:[F(Lem-inv-Op) (2) {0:n, 1:n, 0:s = 0:s, 0:n}], 0:s
+        = 0:k, 0:c, 1:[Lem-scramble (1) {1:k, 0:s = 0:d, 0:k}], 1:n, 0:s
+        = 0:k, 0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:k, 1:n, 0:s
+        = 0:k, 0:n, 0:[Scramble (1) {0:k, 0:s = 0:d, 0:k}]
+        = 0:k, 0:[Inv-total (1) {0:n, 0:d = 0:d}], 0:k
+        = 0:[Gen-total (0) {0:k, 0:d = id}], 0:k
+}
+
+lem  key-split (1) {
+    0:k, 0:c, 1:s, 0:n
+    =
+    1:k, 1:c, 0:s, 1:n
+}
+
+proof  (1) {
+        0:k, 0:c, 1:s, 0:n, 1:[Copy-unital (1) {id = 0:c, 0:d}]
+        =
+        0:k, 0:c, 1:s, 0:n, 1:c, 1:d, 0:[Group-unital2 (1) {id = 1:e, 0:s}]
+        =
+        0:k, 0:c, 1:s, 0:n, 1:c, 1:[Group-inverse2 (1) {0:d, 0:e = 0:c, 1:n, 0:s}], 0:s
+        =
+        0:k, 0:c, 1:s, 0:n, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:n, 1:s, 0:s
+        =
+        0:k, 0:c, 1:[Dist(x,c,s) (2) {0:s, 0:c = 0:c, 2:c, 1:x, 0:s, 1:s}], 0:n, 2:c, 2:n, 1:s, 0:s
+        =
+        0:k, 0:c, 1:c, 3:c, 2:x, 3:s, 0:n, 3:c, 3:n, 1:[Group-associative (3) {0:s, 0:s = 1:s, 0:s}], 0:s
+        =
+        0:k, 0:c, 1:c, 3:c, 2:x, 3:s, 0:n, 3:c, 3:n, 2:s, 0:[Group-associative (3) {1:s, 0:s = 0:s, 0:s}]
+        =
+        0:k, 1:c, 0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 2:x, 3:s, 0:n, 3:c, 3:n, 2:s, 0:s, 0:s
+        =
+        0:k, 1:c, 0:c, 1:x, 2:s, 0:[Group-inverse (1) {0:c, 0:n, 0:s = 0:d, 0:e}], 2:c, 2:n, 1:s, 0:s
+        =
+        0:k, 1:c, 0:c, 1:x, 2:s, 0:d, 1:c, 1:n, 0:s, 0:[Group-unital (1) {0:e, 0:s = id}]
+        =
+        0:k, 1:c, 0:[Copy-unital (1) {0:c, 0:d = id}], 0:x, 1:s, 1:c, 1:n, 0:s
+        =
+        0:c, 0:[SymD(x,k) (1) {0:k, 0:x = 1:k}], 1:s, 1:c, 1:n, 0:s
+        =
+        0:c, 1:[Scramble (1) {0:k, 0:s = 0:d, 0:k}], 1:c, 1:n, 0:s
+        =
+        0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:k, 1:c, 1:n, 0:s
+        =
+        1:[Lem-gen-inv (0) {0:k = 0:k, 0:n}], 1:c, 1:n, 0:s
+        =
+        1:k, 1:[Dist(x,c,n) (1) {0:n, 0:c = 0:c, 0:n, 1:n}], 1:n, 0:s
+        =
+        1:k, 1:c, 1:[Double-Inverse (1) {0:n, 0:n = id}], 2:n, 0:s
+}

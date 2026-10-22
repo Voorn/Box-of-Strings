@@ -1,0 +1,203 @@
+import  priv/3-com-leak
+
+note {The group version of one-time-pad. We can use a uniformely generated group element to scramble and descramble some input, functioning as encryption and decryption.}
+lem  OTP-none (1) {
+    0:b, 0:c, 0:n, 1:o, 0:o
+    =
+    id
+}
+
+note {Let us now suppose the "encryption" was leaked, using our leak marker. We can derive equationally that nothing of consequence was leaked.}
+lem  OTP (1) {
+    0:b, 0:c, 0:n, 1:o, 1:l, 0:o
+    =
+    id
+}
+proof  (1) {
+	0:b, 0:c, 0:n, 1:o, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:o
+	=
+	0:b, 0:c, 0:n, 1:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 0:o, 1:q
+	=
+	0:b, 0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 0:n, 3:c, 2:x, 1:o, 2:o, 0:o, 1:q
+	=
+	0:b, 0:c, 0:c, 0:n, 3:c, 2:x, 3:o, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 1:q
+	=
+	0:b, 0:c, 2:c, 1:x, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 2:o, 0:o, 1:q
+	=
+	0:b, 0:[Copy-unital (1) {0:c, 0:d = id}], 1:c, 0:x, 0:e, 2:o, 0:o, 1:q
+	=
+	0:b, 1:c, 0:x, 1:o, 0:[Group-unital (1) {0:e, 0:o = id}], 1:q
+	=
+	0:c, 0:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 1:o, 1:q
+	=
+	0:c, 1:[Scramble (1) {0:b, 0:o = 0:d, 0:b}], 1:q
+	=
+	0:c, 1:d, 1:[{Random-leak<>Dist(x,q,b)} (0) {0:b, 0:q = id}]
+	=
+	0:[Copy-unital2 (1) {0:c, 1:d = id}]
+}
+
+note {Now for our main example: Suppose three different people want to compute what their average salary is, without revealing their own salary. They can do that as follows: the first person randomly scrambles their own salary, and passes the result to the next. The next adds their salary, and passes it along, until the total returns to first. The first then subtracts what they initially used to scramble their salary, and anounces the result.}
+lem  Salsum-none (3) {
+    0:b, 0:c, 1:o, 1:o, 1:o, 0:n, 0:o
+    =
+    0:o, 0:o
+}
+
+proof  (3) {
+	0:b, 0:c, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 1:o, 0:n, 0:o
+	=
+	0:b, 0:c, 2:o, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 0:n, 0:o
+	=
+	0:b, 0:c, 2:o, 2:o, 0:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}]
+	=
+	0:b, 1:o, 1:o, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 0:o
+	=
+	0:[Gen-total (0) {0:b, 0:d = id}], 0:o, 0:o, 0:e, 0:o
+	=
+	0:o, 0:o, 0:[Group-unital (1) {0:e, 0:o = id}]
+}
+
+note {Let us analyse what the second person can see and derive, to show that they cannot derive the other salaries. They know their own salary, the value passed to them, the value passed to the next, and the final anounced sum. We can prove that the intermediate two leaks are inconsequential.}
+lem  Salsum-2 (3) {
+    1:l, 0:b, 0:c, 1:o, 1:l, 1:o, 1:l, 1:o, 0:n, 0:o, 0:l
+    =
+    1:l, 0:o, 0:o, 0:l
+}
+proof  (3) {
+	0:b, 0:c, 1:o, 1:l, 1:[{Op-leak-2<>Op-leak-1} (2) {1:l, 0:o, 0:l = 0:l, 1:l, 0:o}], 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 1:o, 1:[Double-Leak (1) {0:l, 0:l = 0:l}], 2:l, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 1:o, 1:l, 2:l, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 1:o, 1:l, 2:l, 2:o, 0:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 0:l
+	=
+	1:l, 1:o, 0:[OTP (1) {0:b, 0:c, 0:n, 1:o, 1:l, 0:o = id}], 0:o, 0:l
+	=
+	1:l, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 0:l
+}
+
+note {Even if we look at what the first person sees, who does most of the work and seemingly knows the most, we can still derive that they only know their own input and the anounced result, everything else is inconsequential to the context.}
+lem  Salsum-1 (3) {
+    0:l, 0:b, 0:l, 0:c, 1:l, 1:o, 0:l, 1:l, 1:o, 1:o, 0:n, 1:l, 0:l, 0:o, 0:l
+    =
+    0:l, 0:o, 0:o, 0:l
+}
+proof  (3) {
+	0:l, 0:b, 0:l, 0:c, 1:l, 1:o, 0:l, 1:l, 1:o, 1:o, 0:n, 0:l, 0:[{Op-leak-2<>Op-leak-1};{F(Op-leak-2)<>F(Op-leak-1)} (2) {1:l, 0:o, 0:l = 0:l, 0:o, 0:l}]
+	=
+	0:l, 0:b, 0:l, 0:c, 1:l, 1:o, 0:l, 1:l, 1:o, 1:o, 0:n, 0:[Double-Leak (1) {0:l, 0:l = 0:l}], 0:o, 0:l
+	=
+	0:l, 0:b, 0:l, 0:c, 1:l, 1:o, 0:l, 1:l, 1:o, 1:o, 0:[{Not-leak-2<>Not-leak-1} (1) {0:n, 0:l = 0:l, 0:n}], 0:o, 0:l
+	=
+	0:l, 0:b, 0:l, 0:c, 1:l, 1:o, 0:[Double-Leak (1) {0:l, 0:l = 0:l}], 1:l, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:l, 0:b, 0:l, 0:[Lid-Copy2 (1) {0:c, 0:l = 0:l, 0:c}], 1:l, 1:o, 1:l, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:l, 0:b, 0:[Double-Leak (1) {0:l, 0:l = 0:l}], 0:c, 1:l, 1:o, 1:l, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 0:l, 0:c, 1:l, 1:[{Op-leak-2<>Op-leak-1} (2) {1:l, 0:o, 0:l = 0:l, 1:l, 0:o}], 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 0:c, 1:[Double-Leak (1) {0:l, 0:l = 0:l}], 1:o, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 0:[Lid-Copy (1) {0:c, 1:l = 0:l, 0:c}], 1:o, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:[Double-Leak (1) {0:l, 0:l = 0:l}], 0:c, 1:o, 1:o, 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 0:c, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 1:o, 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 0:c, 2:o, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 0:n, 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 0:c, 2:o, 2:o, 0:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 0:l
+	=
+	0:b, 1:l, 0:l, 1:o, 1:o, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 0:o, 0:l
+	=
+	0:b, 1:l, 0:l, 1:o, 1:o, 0:d, 0:[Group-unital (1) {0:e, 0:o = id}], 0:l
+	=
+	0:l, 0:o, 0:b, 0:[Lid-discard (1) {0:l, 0:d = 0:q}], 0:o, 0:l
+	=
+	0:l, 0:o, 0:[{Random-leak<>Dist(x,q,b)} (0) {0:b, 0:q = id}], 0:o, 0:l
+}
+
+note {But, suppose any two participants "collude", they can derive the salary of the third. E.g., let us mark everything known to partipant 2 and 3, they can derive the salary of participant 1.}
+lem  Salsum23 (3) {
+    1:l, 2:l, 0:b, 0:c, 1:o, 1:l, 1:o, 1:l, 1:o, 0:n, 1:l, 0:o, 0:l
+    =
+    0:l, 1:l, 2:l, 0:o, 0:o, 0:l
+}
+proof  (3) {
+	2:l, 0:b, 0:c, 1:o, 1:[{Op-leak-2<>Op-leak-1} (2) {0:l, 1:l, 0:o = 1:l, 0:o, 0:l}], 1:l, 1:o, 0:n, 1:l, 0:o, 0:l
+	=
+	2:l, 1:l, 0:b, 0:c, 1:o, 1:o, 1:[Double-Leak (1) {0:l, 0:l = 0:l}], 1:o, 0:n, 1:l, 0:o, 0:l
+	=
+	1:l, 0:[Salsum-3 (3) {2:l, 0:b, 0:c, 0:n, 1:o, 1:o, 1:l, 1:o, 1:l, 0:o, 0:l = 0:o, 1:l, 0:o, 0:l}]
+	=
+	1:l, 0:o, 1:l, 0:o, 0:[Double-Leak (1) {0:l = 0:l, 0:l}]
+	=
+	1:l, 0:o, 0:[{Op-leak-2<>Op-leak-1} (2) {1:l, 0:o, 0:l = 0:l, 1:l, 0:o}], 0:l
+	=
+	0:[{Op-leak-2<>Op-leak-1} (2) {1:l, 0:o, 0:l = 0:l, 1:l, 0:o}], 1:l, 0:o, 0:l
+}
+
+note {In conclusion, we can mark leaked resources, and reason both ways: show that something sensitive was leaked by spreading the markers, or show that nothing consequential was leaked by isolating and removing the markers.}
+lem  Conclusion (2) {
+    2:b, 0:b, 3:l, 0:c, 4:c, 1:o, 0:n, 1:l, 2:o, 3:n, 2:l, 0:o, 1:o
+    =
+    1:l
+}
+proof  (2) {
+	2:b, 2:l, 2:c, 0:[OTP-none (1) {0:b, 0:c, 0:n, 1:o, 1:l, 0:o = id}], 1:o, 2:n, 1:l, 1:o
+	=
+	2:b, 2:l, 2:c, 1:o, 2:n, 1:[F(Leaky-identity) (1) {0:l = 0:c, 0:q}], 1:o
+	=
+	2:b, 2:l, 2:c, 3:n, 1:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 1:q, 1:o
+	=
+	2:b, 2:l, 1:c, 3:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:x, 5:n, 1:o, 2:o, 1:q, 1:o
+	=
+	2:b, 2:l, 1:c, 3:c, 4:c, 2:x, 5:n, 1:o, 1:q, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}]
+	=
+	2:b, 2:l, 1:c, 3:c, 2:x, 1:o, 3:[Group-inverse2 (1) {0:c, 1:n, 0:o = 0:d, 0:e}], 1:q, 1:o
+	=
+	2:b, 2:l, 1:c, 3:[Copy-unital2 (1) {0:c, 1:d = id}], 2:x, 1:o, 3:e, 1:q, 1:o
+	=
+	2:b, 2:l, 1:c, 2:x, 1:o, 1:q, 1:[Group-unital2 (1) {1:e, 0:o = id}]
+	=
+	2:b, 1:c, 2:[SymU(x,l) (2) {1:l, 0:x = 0:x, 0:l}], 1:o, 1:q
+	=
+	2:b, 1:c, 2:x, 2:l, 1:o, 1:[Lid-discard (1) {0:q = 0:l, 0:d}]
+	=
+	2:b, 1:c, 2:x, 1:[{Op-leak-2<>Op-leak-1};{F(Op-leak-2)<>F(Op-leak-1)} (2) {1:l, 0:o, 0:l = 0:l, 0:o, 0:l}], 1:d
+	=
+	1:c, 2:[SymU(x,b) (1) {1:b, 0:x = 0:b}], 1:l, 1:o, 1:l, 1:d
+	=
+	1:c, 1:l, 1:[Lem-scramble (1) {1:b, 0:o = 0:d, 0:b}], 1:l, 1:d
+	=
+	1:c, 1:l, 1:d, 1:[prob-leak (0) {0:b, 0:l, 0:d = id}]
+	=
+	1:[Lid-Copy2 (1) {0:c, 0:l = 0:l, 0:c}], 1:d
+	=
+	1:l, 1:[Copy-unital (1) {0:c, 0:d = id}]
+}
+
+lem  Salsum-3 (3) {
+    2:l, 0:b, 0:c, 1:o, 1:o, 1:l, 1:o, 1:l, 0:n, 0:o, 0:l
+    =
+    2:l, 0:o, 0:o, 0:l
+}
+proof  (3) {
+	0:b, 0:c, 1:o, 1:o, 1:[{Op-leak-2<>Op-leak-1} (2) {0:l, 1:l, 0:o = 1:l, 0:o, 0:l}], 1:l, 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 1:o, 1:o, 2:l, 1:o, 1:[Double-Leak (1) {0:l, 0:l = 0:l}], 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 2:l, 1:o, 1:l, 0:n, 0:o, 0:l
+	=
+	0:b, 0:c, 2:o, 3:l, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 1:l, 0:n, 0:o, 0:l
+	=
+	2:l, 0:o, 0:o, 0:[OTP (1) {0:b, 0:c, 0:n, 1:o, 1:l, 0:o = id}], 0:l
+}
+
+
+
+
+

@@ -1,0 +1,253 @@
+
+import  paper/2-com-prob
+import  paper/3-base-leak
+
+
+lem  Neutral-leak (0) {
+        0:e, 0:q
+        >
+        id
+}
+
+proof  (0) {
+	0:e, 0:[Discard-Leak (1) {0:q > 0:d}]
+	=
+	0:[Dist(x,d,e) (0) {0:e, 0:d = id}]
+}
+
+
+lem  Random-leak (0) {
+        0:k, 0:q
+        >
+        id
+}
+
+
+lem  Not-leak (1) {
+    0:n, 0:q
+    >
+    0:q
+}
+
+proof  (1) {
+	0:n, 0:[Dist(x,q,n) (1) {0:q > 0:n, 0:q}]
+	=
+	0:[Double-Inverse (1) {0:n, 0:n = id}], 0:q
+}
+
+
+lem  Op-leak-1 (2) {
+        0:l, 1:l, 0:s
+        >
+        1:l, 0:s, 0:l
+}
+proof  (2) {
+        0:l, 1:[Double-Leak (1) {0:l = 0:l, 0:l}], 0:s
+        =
+        1:l, 1:l, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:s
+        =
+        1:l, 1:l, 0:c, 1:[SymD(x,q) (2) {0:q = 0:x, 1:q}], 0:s
+        =
+        1:l, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:c, 1:x, 2:q, 0:s
+        =
+        1:l, 1:c, 0:c, 1:x, 2:[Dist(x,q,o) (2) {0:q, 0:q > 0:s, 0:q}], 0:s
+        =
+        1:l, 0:[Dist(x,c,o) (2) {0:c, 2:c, 1:x, 0:s, 1:s = 0:s, 0:c}], 1:q
+        =
+        1:l, 0:s, 0:[Leaky-identity (1) {0:c, 1:q = 0:l}]
+}
+
+lem  Op-leak-2 (2) {
+        0:l, 1:l, 0:s
+        <
+        1:l, 0:s, 0:l
+}
+proof  (2) {
+        1:[Double-Leak (1) {0:l = 0:l, 0:l}], 0:s, 0:l
+        =
+        1:l, 1:l, 0:s, 0:[Leaky-identity (1) {0:l = 0:c, 1:q}]
+        =
+        1:l, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:s, 0:c, 1:q
+        =
+        1:l, 1:c, 2:[Dist(x,q,n) (1) {0:q > 0:n, 0:q}], 0:s, 0:c, 1:q
+        =
+        1:l, 1:c, 2:n, 0:s, 0:c, 1:[Dist(x,q,o) (2) {0:q, 0:q > 0:s, 0:q}]
+        =
+        1:l, 1:c, 2:n, 0:[Dist(x,c,o) (2) {0:s, 0:c = 0:c, 2:c, 1:x, 0:s, 1:s}], 1:s, 1:q
+        =
+        1:l, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 3:n, 0:c, 1:x, 0:s, 1:s, 1:s, 1:q
+        =
+        1:l, 1:c, 2:c, 3:n, 0:c, 1:x, 0:s, 1:[Group-associative (3) {0:s, 0:s = 1:s, 0:s}], 1:q
+        =
+        1:l, 1:c, 0:c, 1:x, 0:s, 2:[Group-inverse2 (1) {0:c, 1:n, 0:s = 0:d, 0:e}], 1:s, 1:q
+        =
+        1:l, 1:c, 0:c, 1:x, 0:s, 2:d, 1:[Group-unital2 (1) {1:e, 0:s = id}], 1:q
+        =
+        1:l, 1:[Copy-unital2 (1) {0:c, 1:d = id}], 0:c, 1:x, 0:s, 1:q
+        =
+        1:l, 0:c, 1:[SymD(x,q) (2) {0:x, 1:q = 0:q}], 0:s
+        =
+        0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 1:l, 0:s
+}
+
+lem  Op-leak-3 (2) {
+        0:l, 1:l, 0:s
+        =
+        0:l, 0:s, 0:l
+}
+
+proof  (2) {
+        0:l, 1:l, 0:[Group-commutative (2) {0:s = 0:x, 0:s}]
+        =
+        1:l, 0:[SymD(x,l) (2) {0:l, 0:x = 0:x, 1:l}], 0:s
+        =
+        0:[SymU(x,l) (2) {1:l, 0:x = 0:x, 0:l}], 1:l, 0:s
+        =
+        0:x, 0:[{Op-leak-2<>Op-leak-1} (2) {0:l, 1:l, 0:s = 1:l, 0:s, 0:l}]
+        =
+        0:[SymD(x,l) (2) {0:x, 1:l = 0:l, 0:x}], 0:s, 0:l
+        =
+        0:l, 0:[Group-commutative (2) {0:x, 0:s = 0:s}], 0:l
+}
+
+
+lem  Not-leak-1 (1) {
+        0:l, 0:n
+        >
+        0:n, 0:l
+}
+
+proof  (1) {
+	0:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:n
+	=
+	0:c, 1:[{Not-leak<>Dist(x,q,n)} (1) {0:q = 0:n, 0:q}], 0:n
+	=
+	0:[Dist(x,c,n) (1) {0:c, 0:n, 1:n = 0:n, 0:c}], 1:q
+	=
+	0:n, 0:[Leaky-identity (1) {0:c, 1:q = 0:l}]
+}
+
+
+lem  Not-leak-2 (1) {
+        0:l, 0:n
+        <
+        0:n, 0:l
+}
+
+
+lem  leak-crypt (2) {
+    0:c, 1:s, 0:n, 1:l, 0:s
+    =
+    1:c, 0:s, 0:q
+}
+
+proof  (2) {
+        0:c, 1:s, 0:n, 1:[Leaky-identity (1) {0:l = 0:c, 1:q}], 0:s
+        =
+        0:c, 1:[Dist(x,c,s) (2) {0:s, 0:c = 0:c, 2:c, 1:x, 0:s, 1:s}], 0:n, 2:q, 0:s
+        =
+        1:c, 0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 2:x, 1:s, 2:s, 0:n, 2:q, 0:s
+        =
+        1:c, 0:c, 0:c, 2:x, 3:s, 0:n, 3:q, 0:[Group-associative (3) {1:s, 0:s = 0:s, 0:s}]
+        =
+        1:c, 0:c, 1:x, 0:[Group-inverse (1) {0:c, 0:n, 0:s = 0:d, 0:e}], 2:s, 2:q, 0:s
+        =
+        1:c, 0:c, 1:x, 0:d, 1:s, 1:q, 0:[Group-unital (1) {0:e, 0:s = id}]
+        =
+        1:c, 0:[Copy-unital (1) {0:c, 0:d = id}], 0:x, 1:s, 1:q
+        =
+        1:[Copy-commutative (1) {0:c = 0:c, 0:x}], 0:x, 1:s, 1:q
+        =
+        1:c, 0:[SymD(x,s) (3) {1:x, 0:x, 1:s = 0:s, 0:x}], 1:q
+        =
+        1:c, 0:s, 0:[SymD(x,q) (2) {0:x, 1:q = 0:q}]
+}
+
+
+lem  OTP (1) {
+    0:k, 0:c, 1:s, 0:n, 1:l, 0:s
+    =
+    id
+}
+
+proof  (1) {
+        0:k, 0:[leak-crypt (2) {0:c, 0:n, 1:s, 1:l, 0:s = 1:c, 0:s, 0:q}]
+        =
+        0:c, 0:[Scramble (1) {0:k, 0:s = 0:d, 0:k}], 0:q
+        =
+        0:c, 0:d, 0:[{Random-leak<>Dist(x,q,k)} (0) {0:k, 0:q = id}]
+        =
+        0:[Copy-unital (1) {0:c, 0:d = id}]
+}
+
+
+lem-hide  leak-crypt2 (2) {
+    1:c, 0:s, 1:n, 0:l, 0:s
+    =
+    0:c, 1:s, 1:q
+}
+
+
+lem  OTP-twice< (2) {
+    1:k, 1:c, 1:c, 3:c, 0:s, 3:s, 1:n, 2:n, 0:l, 3:l, 0:s, 1:s
+    <
+    0:c, 2:c, 1:n, 1:s, 1:q
+}
+
+proof  (2) {
+	1:k, 1:c, 1:c, 0:s, 1:n, 0:l, 2:[leak-crypt (2) {0:c, 0:n, 1:s, 1:l, 0:s = 1:c, 0:s, 0:q}], 0:s
+	=
+	1:k, 1:c, 3:c, 0:[leak-crypt2 (2) {1:c, 0:s, 1:n, 0:l, 0:s = 0:c, 1:s, 1:q}], 1:s, 1:q
+	=
+	1:k, 1:c, 3:c, 0:c, 1:s, 1:[{Not-leak<>Dist(x,q,n)} (1) {0:q = 0:n, 0:q}], 1:s, 1:q
+	=
+	1:k, 1:c, 3:c, 0:c, 1:[Inv-op (2) {0:s, 0:n = 0:n, 1:n, 0:s}], 1:q, 1:s, 1:q
+	=
+	1:c, 0:c, 1:n, 2:[key-split (1) {0:k, 0:c, 0:n, 1:s = 1:k, 1:c, 0:s, 1:n}], 1:s, 1:q, 1:q
+	=
+	1:c, 0:c, 1:n, 3:k, 3:c, 1:[Group-associative (3) {1:s, 0:s = 0:s, 0:s}], 2:n, 1:q, 1:q
+	=
+	1:c, 0:c, 1:n, 1:s, 2:k, 2:c, 1:[Dist(x,q,s) (2) {0:s, 0:q < 0:q, 0:q}], 1:n, 1:q
+	=
+	1:c, 0:c, 1:n, 1:s, 2:k, 2:c, 1:q, 1:q, 1:[{Not-leak<>Dist(x,q,n)} (1) {0:n, 0:q = 0:q}]
+	=
+	1:c, 0:c, 1:n, 1:s, 2:k, 1:q, 1:[{Copy-Leak-2<>Dist(x,q,c)} (1) {0:c, 0:q, 0:q = 0:q}]
+	=
+	1:c, 0:c, 1:n, 1:s, 1:q, 1:[{Random-leak<>Dist(x,q,k)} (0) {0:k, 0:q = id}]
+}
+
+
+lem  OTP-twice> (2) {
+    1:k, 1:c, 1:c, 3:c, 0:s, 3:s, 1:n, 2:n, 0:l, 3:l, 0:s, 1:s
+    >
+    0:c, 2:c, 1:n, 1:s, 1:q
+}
+
+proof  (2) {
+	1:k, 1:c, 2:c, 3:s, 2:n, 3:l, 2:s, 0:[leak-crypt2 (2) {1:c, 0:s, 1:n, 0:l, 0:s = 0:c, 1:s, 1:q}]
+	=
+	1:k, 1:c, 0:c, 1:s, 1:q, 1:[leak-crypt (2) {0:c, 0:n, 1:s, 1:l, 0:s = 1:c, 0:s, 0:q}]
+	=
+	1:k, 1:c, 0:c, 1:s, 3:c, 2:s, 1:[{Not-leak<>Dist(x,q,n)} (1) {0:q = 0:n, 0:q}], 1:q
+	=
+	1:k, 1:c, 0:c, 1:s, 3:c, 2:s, 1:n, 1:[Dist(x,q,s) (2) {0:q, 0:q > 0:s, 0:q}]
+	=
+	1:k, 1:c, 0:c, 1:s, 3:c, 1:n, 1:[Group-associative (3) {1:s, 0:s = 0:s, 0:s}], 1:q
+	=
+	1:k, 1:c, 0:c, 1:[Inv-op (2) {0:s, 0:n = 0:n, 1:n, 0:s}], 3:c, 1:s, 1:s, 1:q
+	=
+	1:k, 1:c, 0:c, 1:n, 2:n, 4:c, 1:[Group-associative (3) {0:s, 0:s = 1:s, 0:s}], 1:s, 1:q
+	=
+	1:k, 0:c, 2:[Group-inverse (1) {0:c, 0:n, 0:s = 0:d, 0:e}], 1:n, 3:c, 1:s, 1:s, 1:q
+	=
+	0:c, 2:e, 1:n, 3:c, 1:s, 2:[Gen-total (0) {0:k, 0:d = id}], 1:s, 1:q
+	=
+	0:c, 1:n, 2:c, 1:[Group-unital2 (1) {1:e, 0:s = id}], 1:s, 1:q
+}
+
+
+lem  Neutral-leak+ (3) {
+    0:k, 2:l, 0:c, 1:s, 1:l, 1:s, 1:l, 1:s, 0:n, 0:s, 0:l
+    =
+    1:l, 0:s, 0:s, 0:l
+}

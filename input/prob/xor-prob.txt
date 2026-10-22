@@ -1,0 +1,200 @@
+# XOR calculus: using xor as primitive  #
+
+import algebra/xor
+
+op  b : 0 -> 1  [2]
+
+schema naturality {x,d} {b}
+
+show  Coin-flip (0) {
+        0:b
+}
+
+def  XOR-coin (1) {
+        0:b, 0:r
+        =
+        0:d, 0:b
+}
+
+lem  XOR-coin2 (1) {
+        1:b, 0:r
+        =
+        0:d, 0:b
+}
+
+proof  (1) {
+        1:b, 0:[XOR-comm (2) {0:r = 0:x, 0:r}]
+        =
+        0:[SymU(x,b) (1) {1:b, 0:x = 0:b}], 0:r
+        =
+        0:[XOR-coin (1) {0:b, 0:r = 0:d, 0:b}]
+}
+
+lem  XOR-split (1) {
+        0:b, 0:c, 1:r
+        =
+        1:b, 1:c, 0:r
+}
+
+proof  (1) {
+        0:b, 0:c, 1:r, 1:[Copy-unital (1) {id = 0:c, 0:d}]
+        =
+        0:b, 0:c, 1:r, 1:c, 1:d, 0:[XOR-unital2 (1) {id = 1:0, 0:r}]
+        =
+        0:b, 0:c, 1:r, 1:c, 1:[XOR-diagonal (1) {0:d, 0:0 = 0:c, 0:r}], 0:r
+        =
+        0:b, 0:c, 1:r, 1:[Copy-assoc (1) {0:c, 0:c = 0:c, 1:c}], 1:r, 0:r
+        =
+        0:b, 0:c, 1:[Dist(x,r,c) (2) {0:r, 0:c = 0:c, 2:c, 1:x, 0:r, 1:r}], 2:c, 1:r, 0:r
+        =
+        0:b, 0:c, 1:c, 3:c, 2:x, 1:r, 2:r, 2:c, 0:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}]
+        =
+        0:b, 0:c, 1:c, 3:c, 2:x, 3:r, 0:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}], 1:c, 0:r
+        =
+        0:b, 0:[Copy-assoc (1) {0:c, 1:c = 0:c, 0:c}], 3:c, 2:x, 3:r, 0:r, 0:r, 1:c, 0:r
+        =
+        0:b, 0:c, 2:c, 1:x, 0:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 2:r, 0:r, 1:c, 0:r
+        =
+        0:b, 0:c, 2:c, 1:x, 0:d, 1:r, 0:[XOR-unital (1) {0:0, 0:r = id}], 1:c, 0:r
+        =
+        0:b, 0:[Copy-unital (1) {0:c, 0:d = id}], 1:c, 0:x, 1:r, 1:c, 0:r
+        =
+        0:c, 0:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 1:r, 1:c, 0:r
+        =
+        0:c, 1:[XOR-coin (1) {0:b, 0:r = 0:d, 0:b}], 1:c, 0:r
+        =
+        0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:b, 1:c, 0:r
+}
+
+lem  OTP (1) {
+        0:b, 0:c, 1:r, 1:c, 0:r
+        =
+        1:b
+}
+
+proof  (1) {
+        0:[XOR-split (1) {0:b, 0:c, 1:r = 1:b, 1:c, 0:r}], 1:c, 0:r
+        =
+        1:b, 1:c, 2:c, 0:[XOR-associative (3) {0:r, 0:r = 1:r, 0:r}]
+        =
+        1:b, 1:[Copy-assoc (1) {0:c, 1:c = 0:c, 0:c}], 1:r, 0:r
+        =
+        1:b, 1:c, 1:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 0:r
+        =
+        1:b, 1:[Copy-unital (1) {0:c, 0:d = id}], 1:0, 0:r
+        =
+        1:b, 0:[XOR-unital2 (1) {1:0, 0:r = id}]
+}
+
+lem  Any-key (2) {
+    0:c, 1:r, 1:c, 0:x, 1:r
+    =
+    1:c, 0:r
+}
+
+lem-hide  Any-key2 (2) {
+    1:c, 0:r, 0:c, 1:x, 0:r
+    =
+    0:c, 1:r
+}
+
+example  Example34 (2) {
+        1:b, 1:c, 1:c, 3:c, 0:r, 3:r, 0:c, 4:c, 1:x, 3:x, 0:r, 1:r, 2:r
+        =
+        0:c, 2:c, 1:r
+}
+
+proof  (2) {
+        1:b, 1:c, 2:c, 3:r, 3:c, 2:x, 3:r, 0:[Any-key2 (2) {1:c, 0:r, 0:c, 1:x, 0:r = 0:c, 1:r}], 1:r
+        =
+        1:b, 1:c, 0:c, 1:r, 2:[Any-key (2) {0:c, 1:r, 1:c, 0:x, 1:r = 1:c, 0:r}], 1:r
+        =
+        1:b, 1:c, 0:c, 1:r, 3:c, 1:[XOR-associative (3) {1:r, 0:r = 0:r, 0:r}]
+        =
+        1:b, 1:c, 0:c, 1:[XOR-associative (3) {0:r, 0:r = 1:r, 0:r}], 2:c, 1:r
+        =
+        1:b, 0:c, 2:[XOR-diagonal (1) {0:c, 0:r = 0:d, 0:0}], 1:r, 2:c, 1:r
+        =
+        1:[Dist(x,b,d) (0) {0:b, 0:d = id}], 0:c, 2:0, 1:r, 2:c, 1:r
+        =
+        0:c, 1:[XOR-unital2 (1) {1:0, 0:r = id}], 2:c, 1:r
+}
+
+
+# Bit-sharing #
+
+op  s : 1 -> 2
+
+def  Share-Def (1) {
+    0:s
+    =
+    0:b, 0:c, 1:r
+}
+
+lem  Share-XOR (1) {
+    0:s, 0:r
+    =
+    id
+}
+
+
+lem  Share-associative (1) {
+    0:s, 0:s
+    =
+    0:s, 1:s
+}
+
+lem  Share-commutative (1) {
+    0:s, 0:x
+    =
+    0:s
+}
+
+lem  Share-cancel (1) {
+    0:s, 0:d
+    =
+    0:d, 0:b
+}
+
+lem-hide  Share-cancel2 (1) {
+    0:s, 1:d
+    =
+    0:d, 0:b
+}
+
+lem  Share-Frobenius (2) {
+    0:s, 1:r
+    =
+    0:r, 0:s
+}
+
+lem-hide  Share-Frobenius2 (2) {
+    1:s, 0:r
+    =
+    0:r, 0:s
+}
+
+lem  Cups (0) {
+    0:0, 0:s
+    =
+    0:b, 0:c
+}
+
+lem  one-Share (1) {
+    0:s, 1:c, 0:r
+    =
+    1:b
+}
+
+
+lem  mpc-sum (2) {
+    0:s, 2:s, 1:x, 0:r, 1:r, 0:r
+    =
+    0:r
+}
+
+lem  mpc-sum-leaked (2) {
+    0:s, 2:s, 1:x, 2:c, 4:c, 3:x, 2:r, 0:r, 0:r
+    =
+    2:b, 3:b, 0:r
+}

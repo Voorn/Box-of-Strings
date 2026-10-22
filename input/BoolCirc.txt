@@ -1,0 +1,72 @@
+# BoolCirc as defined in paper: "Reverse Derivative Ascent: A Categorical Approach to Learning Boolean Circuits" #
+
+import algebra/xor
+
+op  a : 2 -> 1 [and]
+op  1 : 0 -> 1 [0]
+
+schema  naturality {x,c} {a,1}
+schema  naturality {x,d} {a,1}
+
+def  And-associative (3) {
+    0:a, 0:a
+    =
+    1:a, 0:a
+}
+
+def  And-commutative (2) {
+    0:x, 0:a
+    =
+    0:a
+}
+
+def  And-unital (1) {
+    0:1, 0:a
+    =
+    id
+}
+
+def  And-minus (1) {
+    0:c, 0:a
+    =
+    id
+}
+
+def  And-distribute (3) {
+    0:c, 1:x, 0:a, 1:a, 0:r
+    =
+    1:r, 0:a
+}
+
+# And of axioms. Now some lemmas #
+
+lem  And-unital2 (1) {
+    1:1, 0:a
+    =
+    id
+}
+
+
+lem  And-distribute2 (3) {
+    2:c, 1:x, 0:a, 1:a, 0:r
+    =
+    0:r, 0:a
+}
+
+# Flip schema #
+
+schema  flip  {x,c,d,r,0,a,1} {x,c,d,r,0,a,1} 
+
+lem  And-zero (1) {
+    0:0, 0:a
+    =
+    0:d, 0:0
+}
+
+lem  Copy-RA-swap (2) {
+    0:c, 1:r, 0:a
+    =
+    0:c, 1:a, 0:r
+}
+
+

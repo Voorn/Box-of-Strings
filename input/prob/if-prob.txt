@@ -1,0 +1,126 @@
+
+import  algebra/if
+
+op  b : 0 -> 1  [2]
+op  t : 2 -> 1  [w]
+
+schema  flip {b} {b,t}
+schema  naturality {x,d} {b,t}
+schema  if {x,c,d,p} {x,c,d,p,0,1,g,n,a,o,b,t}
+
+
+def  toss-comm (2) {
+    1:b, 0:p
+    =
+    0:x, 1:b, 0:p
+}
+
+
+def  toss-def (2) {
+    0:t
+    =
+    1:b, 0:p
+}
+
+lem  toss-comm (2) {
+    0:x, 0:t
+    =
+    0:t
+}
+
+proof  (2) {
+	0:x, 0:[toss-def (2) {0:t = 1:b, 0:p}]
+	=
+	0:[toss-comm;toss-def (2) {0:x, 1:b, 0:p = 0:t}]
+}
+
+
+lem  toss-interchange (4) {
+    1:x, 0:t, 1:t, 0:t
+    =
+    0:t, 1:t, 0:t
+}
+
+proof  (4) {
+	1:x, 0:t, 1:t, 0:[toss-def (2) {0:t = 1:b, 0:p}]
+	=
+	1:x, 2:b, 0:[If(t) (5) {0:t, 2:t, 0:p = 2:c, 1:x, 3:x, 2:x, 0:p, 1:p, 0:t}]
+	=
+	1:x, 2:b, 1:[Copy-wire-down (2) {1:c, 0:x = 0:x, 0:c, 1:x}], 3:x, 2:x, 0:p, 1:p, 0:t
+	=
+	1:x, 1:[SymU(x,b) (1) {1:b, 0:x = 0:b}], 1:c, 2:x, 3:x, 2:x, 0:p, 1:p, 0:t
+	=
+	1:b, 1:c, 2:[Flap (3) {1:x, 0:x, 1:x, 0:x = 0:x, 1:x}], 0:p, 1:p, 0:t
+	=
+	1:b, 1:[Copy-wire-up (2) {0:c, 1:x = 0:x, 1:c, 0:x}], 3:x, 0:p, 1:p, 0:t
+	=
+	1:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 2:c, 1:x, 3:x, 0:p, 1:p, 0:t
+	=
+	2:b, 2:c, 1:x, 3:x, 0:p, 1:p, 0:[toss-def (2) {0:t = 1:b, 0:p}]
+	=
+	2:b, 2:c, 1:x, 3:b, 4:x, 0:[If(p) (7) {0:p, 2:p, 0:p = 3:c, 3:c, 5:x, 2:x, 4:x, 6:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p}]
+	=
+	2:b, 2:c, 1:x, 3:b, 3:c, 4:[Yang-Baxter (3) {1:x, 0:x, 1:x = 0:x, 1:x, 0:x}], 3:c, 2:x, 4:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 1:x, 3:b, 3:[Copy-wire-up (2) {0:c, 1:x = 0:x, 1:c, 0:x}], 5:x, 4:x, 3:c, 2:x, 4:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 1:x, 3:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 4:c, 3:x, 5:x, 4:x, 3:c, 2:x, 4:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 1:x, 4:b, 4:c, 3:[SymU(x,c) (2) {0:x, 0:c = 1:c, 0:x, 1:x}], 6:x, 5:x, 2:x, 4:x, 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 1:x, 4:b, 4:c, 4:c, 3:x, 6:x, 2:x, 4:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}], 1:x, 3:x, 2:x, 4:x, 0:p, 3:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 1:x, 4:b, 4:c, 4:c, 3:x, 6:x, 2:x, 5:x, 4:x, 1:x, 3:x, 2:x, 0:p, 2:[Yang-Baxter (3) {1:x, 0:x, 1:x = 0:x, 1:x, 0:x}], 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 4:b, 4:c, 4:c, 3:x, 6:x, 5:x, 4:x, 1:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}], 3:x, 2:x, 0:p, 2:x, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 3:b, 3:c, 3:c, 5:x, 4:x, 2:[SymD(x,c) (2) {0:c, 1:x, 0:x = 0:x, 1:c}], 4:x, 1:x, 2:x, 3:x, 2:x, 0:p, 2:x, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 2:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 3:c, 4:x, 1:x, 2:x, 3:x, 2:x, 0:p, 2:x, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 3:b, 3:c, 1:x, 2:x, 3:[Yang-Baxter (3) {1:x, 0:x, 1:x = 0:x, 1:x, 0:x}], 2:x, 0:p, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 3:b, 1:x, 2:[SymU(x,c) (2) {1:c, 0:x, 1:x = 0:x, 0:c}], 4:x, 3:x, 2:x, 0:p, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 1:x, 2:[SymU(x,b) (1) {1:b, 0:x = 0:b}], 2:c, 4:x, 3:x, 2:x, 0:p, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 1:x, 2:b, 3:x, 2:[SymD(x,c) (2) {0:c, 1:x, 0:x = 0:x, 1:c}], 0:p, 3:x, 2:x, 1:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 1:x, 2:x, 3:x, 4:p, 2:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 3:c, 0:p, 2:x, 1:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 1:x, 2:x, 3:x, 4:p, 3:b, 0:p, 1:[If-both (2) {0:c, 1:x, 0:p = 1:d}], 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:x, 1:x, 2:x, 3:b, 0:p, 2:[SymU(x,d) (2) {0:x, 0:d = 1:d}], 2:p, 0:p
+	=
+	2:b, 2:c, 2:c, 4:x, 3:[SymD(x,d) (2) {0:x, 1:d = 0:d}], 1:x, 2:x, 3:b, 0:p, 2:p, 0:p
+	=
+	2:b, 2:c, 2:[Copy-unital2 (1) {0:c, 1:d = id}], 3:x, 1:x, 2:x, 3:b, 0:p, 2:p, 0:p
+	=
+	2:b, 2:c, 3:x, 1:x, 2:x, 0:p, 1:p, 0:[toss-def (2) {1:b, 0:p = 0:t}]
+	=
+	2:b, 0:[If(t) (5) {2:c, 1:x, 3:x, 2:x, 0:p, 1:p, 0:t = 0:t, 2:t, 0:p}]
+	=
+	0:t, 1:t, 0:[toss-def (2) {1:b, 0:p = 0:t}]
+}
+
+
+lem  And-cond (1) {
+    1:b, 1:c, 0:a
+    =
+    0:c, 1:b, 0:a, 0:c, 3:b, 1:p
+}
+
+
+op  k : 2 -> 1
+
+
+schema  naturality {x,d} {k}
+schema  if {x,c,d,p} {x,c,d,p,0,1,g,n,a,o,b,t,k}
+
+
+
+lem  Unnamed (1) {
+    1:b, 1:c, 0:k
+    =
+    1:b, 1:c, 0:k
+}

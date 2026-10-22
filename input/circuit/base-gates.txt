@@ -138,7 +138,7 @@ lem  AND-nullary2 (1) {
         =
         0:d, 0:0
 }
-lem-hide  AND-unital2 (1) {1:0, 0:a = id}
+lem-hide  AND-unital2 (1) {1:1, 0:a = id}
 lem-hide  OR-nullary2 (1) {1:1, 0:o = 0:d, 0:1}
 lem-hide  OR-unital2  (1) {1:0, 0:o = id}
 
@@ -155,7 +155,7 @@ lem  OR-AND-dist (3) {
         0:c, 1:x, 0:a, 1:a, 0:o
 }
 
-Schema{flip}{a.o.0.1}{a.o.0.1}
+schema  flip  {a,o,0,1} {a,o,0,1}
 
 
 # EXTRA LEMMAS #

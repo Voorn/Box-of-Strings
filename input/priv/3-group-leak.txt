@@ -1,6 +1,6 @@
 
-Import{priv/2-group-prob}
-Import{priv/3-base-leak}
+import  prob/group-prob
+import  priv/3-base-leak
 
 
 lem  Lemma57 (0) {

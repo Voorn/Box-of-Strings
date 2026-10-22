@@ -1,9 +1,9 @@
 # Show-case of leaky categories: symmetric encryption + notion of leaked variable "l" #
 
-Import{priv/2-xor-prob}
-Import{priv/3-base-leak}
+import prob/xor-prob
+import priv/3-base-leak
 
-Schema{flip}{x.c.d.q.l.r.0.b}{x.c.d.q.l.r.0.b}
+schema flip {x,c,d,q,l,r,0,b} {x,c,d,q,l,r,0,b}
 
 # ============= #
 # Leaks and XOR #
@@ -246,6 +246,7 @@ lem  2Leak< (2) {
         0:c, 2:c, 1:r, 1:q
 }
 
+
 proof  (2) {
         1:b, 1:c, 1:c, 0:r, 0:l, 2:[Leak-encrypt (2) {0:c, 1:r, 1:l, 0:r = 1:c, 0:r, 0:q}], 0:r
         =
@@ -257,9 +258,9 @@ proof  (2) {
         =
         0:c, 1:b, 3:c, 1:c, 3:r, 2:[Dist(x,r,q) (2) {0:r, 0:q < 0:q, 0:q}], 1:q
         =
-        0:c, 1:b, 3:c, 2:r, 1:[{Copy-Leak 2<>Dist(x,c,q)} (1) {0:c, 0:q, 0:q = 0:q}], 1:q
+        0:c, 1:b, 3:c, 2:r, 1:[{Copy-Leak-2<>Dist(x,q,c)} (1) {0:c, 0:q, 0:q = 0:q}], 1:q
         =
-        0:c, 2:c, 1:r, 1:q, 1:[{F(Coin-leak>))<>Dist(x,b,q)} (0) {0:b, 0:q = id}]
+        0:c, 2:c, 1:r, 1:[{Coin-leak><>Dist(x,q,b)} (0) {0:b, 0:q = id}], 1:q
 }
 
 note {So if the same key is used to encrypt two messages, and both encryptions are leaked, then exactly the sum of messages is leaked.}
@@ -288,6 +289,7 @@ proof  (2) {
         =
         0:l, 1:[F(Leaky-identity) (1) {0:c, 0:q = 0:l}]
 }
+
 
 
 

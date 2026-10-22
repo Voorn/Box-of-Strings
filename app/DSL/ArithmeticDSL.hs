@@ -16,10 +16,10 @@ module DSL.ArithmeticDSL
 
 import DSL.DSLClass
 import DSL.StandardMonad
-import SemanticInterpreterPoly
+import Semantics.SemanticInterpreterPoly
 import Control.Monad.Except
 import qualified Data.Map as Map
-import SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
+import Semantics.SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
 
 -- =====================================================
 -- VALUE TYPES
@@ -114,14 +114,14 @@ arithmeticSymbolicEnv n = loadOps symbolicOps baseEnv
     baseEnv = emptyEnv
         { varMapping = Map.fromList [(Var i, VExpr (AVar i)) | i <- [0..n-1]] }
 
-symbolicOps :: [((Char, String), [ArithValue] -> ArithDSL [ArithValue])]
+symbolicOps :: [((String, String), [ArithValue] -> ArithDSL [ArithValue])]
 symbolicOps =
-    [ (('a', ""), opAddSymbolic)
-    , (('m', ""), opMulSymbolic)
-    , (('n', ""), opNegSymbolic)
-    , (('c', "2"), opCopy)
-    , (('d', "2"), opDiscard)
-    , (('x', "1"), opSwap)
+    [ (("a", ""), opAddSymbolic)
+    , (("m", ""), opMulSymbolic)
+    , (("n", ""), opNegSymbolic)
+    , (("c", "2"), opCopy)
+    , (("d", "2"), opDiscard)
+    , (("x", "1"), opSwap)
     ]
 
 arithmeticConcreteEnv :: [ArithValue] -> Env ArithDSL ArithValue
@@ -130,14 +130,14 @@ arithmeticConcreteEnv vals = loadOps concreteOps baseEnv
     baseEnv = emptyEnv
         { varMapping = Map.fromList [(Var i, v) | (i, v) <- zip [0..] vals] }
 
-concreteOps :: [((Char, String), [ArithValue] -> ArithDSL [ArithValue])]
+concreteOps :: [((String, String), [ArithValue] -> ArithDSL [ArithValue])]
 concreteOps =
-    [ (('a', ""), opAddConcrete)
-    , (('m', ""), opMulConcrete)
-    , (('n', ""), opNegConcrete)
-    , (('c', "2"), opCopy)
-    , (('d', "2"), opDiscard)
-    , (('x', "1"), opSwap)
+    [ (("a", ""), opAddConcrete)
+    , (("m", ""), opMulConcrete)
+    , (("n", ""), opNegConcrete)
+    , (("c", "2"), opCopy)
+    , (("d", "2"), opDiscard)
+    , (("x", "1"), opSwap)
     ]
 
 -- =====================================================

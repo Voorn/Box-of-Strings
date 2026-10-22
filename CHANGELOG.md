@@ -12,3 +12,8 @@
 
 * Third public version. 
 
+## 0.8.0.0 -- October 2026
+
+* Fourth public version.  
+Now only uses new import structure. Added fluidity in animations, better file editting, basic sounds, loadable configurations, and more.
+

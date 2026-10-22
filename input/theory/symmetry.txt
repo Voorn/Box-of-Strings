@@ -4,6 +4,7 @@
 # Swap Operation #
 op  x : 2 -> 2 [1]
 
+
 note {This is the theory of symmetric monoidal categories, which is based on the swap operation 'x'. This represents the swapping between two neighbouring resources.}
 
 show Swap (2) {0:x}
@@ -35,11 +36,14 @@ lem  Flop (3) {
 	1:x, 0:x
 }
 
-proof (3) {
-	0:[Yang-Baxter (3) {0:x,1:x,0:x = 1:x,0:x,1:x}], 1:x
+proof  (3) {
+	0:[Yang-Baxter (3) {0:x, 1:x, 0:x = 1:x, 0:x, 1:x}], 1:x
 	=
-	1:x, 0:x, 1:[DoubleSwap (2) {0:x,0:x = id}]
+	1:x, 0:x, 1:[DoubleSwap (2) {0:x, 0:x = id}]
 }
+
+
+
 
 lem-hide  Flap (3) { 
 	1:x, 0:x, 1:x, 0:x
@@ -100,4 +104,14 @@ example  Multiflip (6) {
 }
 
 
-
+proof  (3) {
+	0:[Id-Func (3) {1:x, 0:x = 0:<I (3) {1:x, 0:x}>}], 1:x, 0:x, 1:x, 0:x
+	=
+	0:<I (3) {1:x, 0:x}>, 0:[Flap (3) {1:x, 0:x, 1:x, 0:x = 0:x, 1:x}]
+	=
+	0:[Id-Func (3) {0:<I (3) {1:x, 0:x}> = 1:x, 0:x}], 0:x, 1:x
+	=
+	1:x, 0:[DoubleSwap (2) {0:x, 0:x = id}], 1:x
+	=
+	1:[DoubleSwap (2) {0:x, 0:x = id}]
+}

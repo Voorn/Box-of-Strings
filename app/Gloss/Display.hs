@@ -11,8 +11,7 @@ import Graphics.Gloss
 
 -- Internal libraries
 import Morph
-import Par2
-import Parse
+import IO.Parse
 -- ==========================================================
 -- Module for Generating vector Gloss pictures from morphisms
 -- ==========================================================
@@ -28,6 +27,19 @@ data Orient =
     |   DU
     |   RL
     deriving Show
+
+popc :: String -> Char
+popc [] = ' '
+popc (c : _) = c
+
+darkMode :: Picture -> Picture
+darkMode (Color c p) =     let (r , g , b , a) = rgbaOfColor c in
+                            Color (makeColor (sqrt (1-r)) (sqrt (1-g)) (sqrt (1-b)) a) p
+darkMode (Translate x y p) = Translate x y (darkMode p)
+darkMode (Rotate r p) = Rotate r (darkMode p)
+darkMode (Scale x y p) = Scale x y (darkMode p)
+darkMode (Pictures l) = Pictures (fmap darkMode l)
+darkMode p = Color white p
 
 
 
@@ -60,8 +72,8 @@ textOrient' h RL c = Translate h 24 (scale (-1) 1 (Text c))
 
 signOrient :: Orient -> Picture -> Picture
 signOrient LR c = c
-signOrient UD c = Rotate 90 (scale (-1) (1) c)
-signOrient DU c = Rotate 90 (scale (-1) (1) c)
+signOrient UD c = Rotate 90 (scale (-1) 1 c)
+signOrient DU c = Rotate 90 (scale (-1) 1 c)
 signOrient RL c = scale (-1) 1 c
 
 -- Applying reorientation to a point
@@ -70,6 +82,12 @@ rePoint _ LR p = p
 rePoint _ UD (x , y) = (y , x)
 rePoint size DU (x , y) = (size-y , x)
 rePoint size RL (x , y) = (size-x , y)
+
+oriZoom :: Float -> Orient -> Point -> Float -> Point
+oriZoom _ LR p z = p
+oriZoom _ UD (x , y) z = (y , -x)
+oriZoom size DU (x , y) z = (size-y , x)
+oriZoom size RL (x , y) z = (size-x , y)
 
 -- Toggle orientations
 flipOrient :: Orient -> Orient
@@ -80,13 +98,23 @@ flipOrient RL = LR
 
 -- Some basic colors for use
 grey :: Color
-grey = ltgrey --makeColorI 240 240 240 255
+grey = makeColor 0.95 0.95 0.95 1
 
 ltgrey :: Color
-ltgrey = makeColorI 247 247 247 255
+ltgrey = makeColor 247 247 247 255
 
 dkgrey :: Color
-dkgrey = makeColorI 180 180 180 255
+dkgrey = makeColor 0.7 0.7 0.7 1
+
+dkgreyAlpha :: Float -> Color
+dkgreyAlpha = makeColor 0.7 0.7 0.7
+
+greyAlpha :: Float -> Color
+greyAlpha = makeColor 0.95 0.95 0.95
+
+hbold :: Picture -> Picture
+hbold p = Pictures [p , Translate 1 0 p]
+
 
 -- ===========================
 -- Display
@@ -96,8 +124,22 @@ dkgrey = makeColorI 180 180 180 255
 initCoor :: Float -> Morph -> [(Float , Float)]
 initCoor s m = [(s * a , s * b) | (a , b) <- coorMorph m]
 
-initCoor' :: Float -> Morph -> [(Float , Float , Bool)]
-initCoor' s m = [(s * a , s * b , False) | (a , b) <- coorMorph m]
+initCoor' :: Float -> Morph -> [Coor]
+initCoor' s m = [(s * a , s * b , False , 1) | (a , b) <- coorMorph m]
+
+-- coordinates with a zoom filter
+initCoorFilter :: Float -> Morph -> Float -> Float -> Float -> [(Float , Float)]
+initCoorFilter s m mx my k = [(s * zoomFilterF (mx/s) k a , s * zoomFilterF (my/s) k b) | (a , b) <- coorMorph m]
+--    |   mx < s/4        =   let f = max 0 (mx/s)*4 in
+--                            initCoorFilter' s m (f/2) 0 (t*f)
+--    |   mx < s*3/4      =   let p = (mx / s - 0.25) * 2 in
+--                            initCoorFilter' s m 0.5 ((1-t)*p) (t+(1-t)*p)
+--    |   otherwise       =   let f = max 0 (1-mx/s)*4 in
+--                            initCoorFilter' s m (f/2) (1-t*f) 1
+                        
+
+initCoorFilter' :: Float -> Morph -> Float -> Float -> Float -> [(Float , Float)]
+initCoorFilter' s m w l r = [(s * zoomFilter' w l r a , s * b) | (a , b) <- coorMorph m]
 
 -- Calculates how much space can be given to boxes and operations, giving them a size
 boxsize :: Float -> Morph -> Float
@@ -123,6 +165,7 @@ pictureMorphBox b h ori (x , y) m =
     let (l, r, u, d) = (h*(0.05-x/20) , h*(0.95-x/20) , h*(0.05-y/20) , h*(0.95-y/20)) in
 --    color ltgrey (Polygon [(0,0) , (l,u),(r,u),(h,0)]) :
 --    color ltgrey (Polygon [(0,h) , (l,d),(r,d),(h,h)]) :
+    color dkgrey (Line [(-1,-1) , (-1,h+1) , (h+1,h+1) , (h+1,-1) , (-1,-1)]) :
     color dkgrey (Line [(0,0) , (0,h) , (h,h) , (h,0) , (0,0)]) :
     color grey (Polygon [(l,u),(l,d),(r,d),(r,u)]) :
     pictureMorphStat h ori (rewMorph m) ++
@@ -152,40 +195,44 @@ readCol ('c' : _) = cyan
 readCol ('m' : _) = magenta
 readCol _ = black
 
+
+lineSteps :: Float -> Float -> Int
+lineSteps h l = 2 + 2*ceiling (h / (8+8*l))
+
 -- Dynamic picture of a morphism using input coordinates: Initialisation
-pictureMorphI :: Float -> Orient -> Morph -> [(Float , Float , Bool)] -> ([Picture] , [(Point , Int , Int)])
+pictureMorphI :: Float -> Orient -> Morph -> [Coor] -> ([Picture] , [(Point , Int , Int)])
 pictureMorphI h ori m loc = let (_ , i) = typeMorph m in
-                        let (mp , mq , mn , ml) = pictureMorph 1 h ori (boxsize h m) m loc in
-                        let (ep , el) = pictureMorphEnd (boxsize h m) (lengthMorph m - 1) h 0 i mn in
+                        let pv = lineSteps h (sizeMorph'' m) in
+                        let (mp , mq , mn , ml) = pictureMorph 1 h ori (boxsize h m) pv m loc in
+                        let (ep , el) = pictureMorphEnd (boxsize h m) (lengthMorph m - 1) h 0 i pv mn in
                             (mp ++ ep ++ mq , ml ++ el)
 
 -- Recursor
-pictureMorph :: Int -> Float -> Orient -> Float -> Morph -> [(Float , Float , Bool)] -> ([Picture] , [Picture] , [Vect] , [(Point , Int , Int)])
-pictureMorph _ h _ _ (Start i) _ = ([] , [] , [((0 , h * frac2Float (1+j , i+1)) , (1 , 0)) | j <- [0..i-1]] , [])
+pictureMorph :: Int -> Float -> Orient -> Float -> Int -> Morph -> [Coor] -> ([Picture] , [Picture] , [Vect] , [(Point , Int , Int)])
+pictureMorph _ h _ _ _ (Start i) _ = ([] , [] , [((0 , h * frac2Float (1+j , i+1)) , (1 , 0)) | j <- [0..i-1]] , [])
 -- was tweaked to be slightly more narrow. It was 1+j / 1+i
-pictureMorph _ _ _ _ _ [] = ([] , [] , [] , [])
-pictureMorph l h ori bh (Op m i o) ((x , y , b) : r) =
+pictureMorph _ _ _ _ _ _ [] = ([] , [] , [] , [])
+pictureMorph l h ori bh pv (Op m i o) ((x , y , b , bf) : r) =
     let (oi , oo) = typeOper o in
-    let (mp , mq , mnotch , mlin) = pictureMorph (l+1) h ori bh m r in
+    let (mp , mq , mnotch , mlin) = pictureMorph (l+1) h ori bh pv m r in
+    let os = bh * sizeOper o * bf in
     case o of
-        Comp n _ -> let os = sizeOper o in
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (os*bh) (os*bh) bh x y mnotch in
+        Comp n _ -> let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
                     let pang = (0, 0) in --(x/h-0.5,y/h-0.5) in
-                    let mini = translate (x-bh*os) (y-bh*os) (pictures (pictureMorphBox False (2*os*bh) ori pang n)) in
+                    let mini = translate (x-os) (y-os) (pictures (pictureMorphBox False (2*os) ori pang n)) in
                     let box = [color white (
-                                Polygon [(x-bh*os , y-bh*os) , (x+bh*os , y-bh*os) , (x+bh*os , y+bh*os) , (x-bh*os , y+bh*os) , (x-bh*os , y-bh*os)]) ,
-                                Line [(x-bh*os , y-bh*os) , (x+bh*os , y-bh*os) , (x+bh*os , y+bh*os) , (x-bh*os , y+bh*os) , (x-bh*os , y-bh*os)] ,
+                                Polygon [(x-os , y-os) , (x+os , y-os) , (x+os , y+os) , (x-os , y+os) , (x-os , y-os)]) ,
+                                Line [(x-os , y-os) , (x+os , y-os) , (x+os , y+os) , (x-os , y+os) , (x-os , y-os)] ,
                                 mini] in
                     if b then
                         (mp ++ lp  , mq ++ box , lnotch , mlin ++ llin)
                     else
                         (box ++ mp ++ lp , mq , lnotch , mlin ++ llin)
-        Func _ n -> let os = sizeOper o in
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (os*bh) (os*bh) bh x y mnotch in
-                    let mini = translate (x-bh*os) (y-bh*os) (pictures (pictureMorphFunc (2*os*bh) ori n)) in
+        Func c n -> let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    let mini = translate (x-os) (y-os) (pictures (pictureMorphFunc (2*os) ori n)) in
                     let box = [color white (
-                                Polygon [(x-bh*os , y-bh*os) , (x+bh*os , y-bh*os) , (x+bh*os , y+bh*os) , (x-bh*os , y+bh*os) , (x-bh*os , y-bh*os)]) ,
-                                Line [(x-bh*os , y-bh*os) , (x+bh*os , y-bh*os) , (x+bh*os , y+bh*os) , (x-bh*os , y+bh*os) , (x-bh*os , y-bh*os)] ,
+                                Polygon [(x-os , y-os) , (x+os , y-os) , (x+os , y+os) , (x-os , y+os) , (x-os , y-os)]) ,
+                                Line [(x-os , y-os) , (x+os , y-os) , (x+os , y+os) , (x-os , y+os) , (x-os , y-os)] ,
                                 mini] in
                     if b then
                         (mp ++ lp  , mq ++ box , lnotch , mlin ++ llin)
@@ -193,135 +240,141 @@ pictureMorph l h ori bh (Op m i o) ((x , y , b) : r) =
                         (box ++ mp ++ lp , mq , lnotch , mlin ++ llin)
         -- Symbol in circle-box
         Base (Sig c (Nothing , "0") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo bh bh x y mnotch in
-                    let tex = translate x y (scale (bh*0.012) (-(bh*0.012)) (charOrient bh ori c)) in
-                    (opCircBox x y bh ++  tex : mp ++ lp , mq , lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo os bh x y pv mnotch in
+                    let tex = translate x y (scale (os*0.012) (-(os*0.012)) (charOrient os ori (popc c))) in
+                    (opCircBox x y os ++  tex : mp ++ lp , mq , lnotch , mlin ++ llin)
         -- No symbol, just connections
         Base (Sig _ (Nothing , "3") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo 0 bh x y mnotch in
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo 0 bh x y pv mnotch in
                     (mp ++ lp , mq , lnotch , mlin ++ llin)
         -- Black bullet connection
         Base (Sig _ (Nothing , "2") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (bh/8) bh x y mnotch in
-                    (mp ++ lp , octagon (max 1.5 (bh/8)) x y :
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (os/8) bh x y pv mnotch in
+                    (mp ++ lp , octagon (max 1.5 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         -- White bullet connection
         Base (Sig _ (Nothing , "w") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (bh/8) bh x y mnotch in
-                    (mp ++ lp , coctagon white (max 1.5 (bh/8)) x y :
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (os/8) bh x y pv mnotch in
+                    (mp ++ lp , coctagon white (max 1.5 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         Base (Sig _ (Nothing , 'c' : 'o' : 'l' : '-' : p) _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (bh/8) bh x y mnotch in
-                    (mp ++ lp , coctagon (readCol p) (max 1.5 (bh/8)) x y :
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (os/8) bh x y pv mnotch in
+                    (mp ++ lp , coctagon (readCol p) (max 1.5 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         -- Swap-slash (for crossing cell)
         Base (Sig _ (Nothing , "1") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 2 (bh/8) * 2.8) bh x y mnotch in
-                    (mp ++ lp , slash (max 2 (bh/8)) x y :
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 2 (os/8) * 2.8) bh x y pv mnotch in
+                    (mp ++ lp , slash (max 2 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         -- Swap-slash inverted (e.g. used in braided categories)
         Base (Sig _ (Nothing , "4") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 4 (bh/4)) bh x y mnotch in
-                    (mp ++ lp , dash (max 2 (bh/8)) x y :
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 4 (os/4)) bh x y pv mnotch in
+                    (mp ++ lp , dash (max 2 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         -- ?
         Base (Sig _ (Nothing , "5") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc2 h l 0 i oi oi oo 0 bh x y mnotch in
+                    let (lp , lnotch , llin) = notchLineCirc2 h l 0 i oi oi oo 0 bh x y pv mnotch in
                     (mp ++ lp , mq , lnotch , mlin ++ llin)
         -- ?
         Base (Sig _ (Nothing , "8") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh (2*bh) bh x y mnotch in
-                    let tex = pictureSpider bh (2*bh) x y oi oo in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os (2*os) bh x y pv mnotch in
+                    let tex = pictureSpider os (2*os) x y oi oo in
                     (mp ++ lp , tex ++ mq , lnotch , mlin ++ llin)
         -- ?
         Base (Sig _ (Nothing , "9") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh (2*bh) bh x y mnotch in
-                    let tex = pictureSpider bh (2*bh) x y oi oo in
-                    (mp ++ lp , octagon (bh/5) x y : tex ++ mq , lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os (2*os) bh x y pv mnotch in
+                    let tex = pictureSpider os (2*os) x y oi oo in
+                    (mp ++ lp , octagon (os/5) x y : tex ++ mq , lnotch , mlin ++ llin)
         -- CNOT gate from quantum computing
         Base (Sig _ (Nothing , "qd") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh (2*bh) bh x y mnotch in
-                    let tex = pictureQuantumD bh (2*bh) x y oi oo in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os (2*os) bh x y pv mnotch in
+                    let tex = pictureQuantumD os (2*os) x y oi oo in
                     (mp ++ lp , tex ++ mq , lnotch , mlin ++ llin)
         -- inverted CNOT gate
         Base (Sig _ (Nothing , "qu") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh (2*bh) bh x y mnotch in
-                    let tex = pictureQuantumU bh (2*bh) x y oi oo in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os (2*os) bh x y pv mnotch in
+                    let tex = pictureQuantumU os (2*os) x y oi oo in
                     (mp ++ lp , tex ++ mq , lnotch , mlin ++ llin)
         Base (Sig _ (Nothing , "v") _ _) ->
-                    let (lp , lnotch , llin) = notchLineVert h l 0 i oi oi oo 0 bh x y mnotch in
+                    let (lp , lnotch , llin) = notchLineVert h l 0 i oi oi oo 0 bh x y pv mnotch in
                     (mp ++ lp , mq , lnotch , mlin ++ llin)
         -- Basic box
         Base (Sig _  (Nothing , "-") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , boctBox x y bh (bh * 0.8) : mq , lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , boctBox x y os (os * 0.8) : mq , lnotch , mlin ++ llin)
         -- Basic box
         Base (Sig c  (Nothing , "") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    let tex = translate x y (scale (bh*0.012) (-(bh*0.012)) (charOrient bh ori c)) in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    let tex = translate x y (scale (os*0.012) (-(os*0.012)) (charOrient os ori (popc c))) in
                     if b then
-                        (mp ++ lp , mq ++ octBox x y bh (bh * 0.8) ++ [tex] , lnotch , mlin ++ llin)
+                        (mp ++ lp , mq ++ octBox x y os (os * 0.8) ++ [tex] , lnotch , mlin ++ llin)
                     else
-                        (octBox x y bh (bh * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
+                        (octBox x y os (os * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
         -- Boolean circuits:
         Base (Sig _  (Nothing , "and") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , opAnd x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opAnd x y os ++ mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "not") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , opNot x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opNot x y os ++ mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "or") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , opOr x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opOr x y os ++ mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "xor") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , opXor x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opXor x y os ++ mq, lnotch , mlin ++ llin)
+        Base (Sig _  (Nothing , "rox") _ _) ->
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opRox x y os : mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "ground") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
-                    (mp ++ lp , opGround x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
+                    (mp ++ lp , opGround x y os ++ mq, lnotch , mlin ++ llin)
         -- special
         Base (Sig _  (Nothing , "leak") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (bh/3) bh bh x y mnotch in
-                    (mp ++ lp , opLeak x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (os/3) os bh x y pv mnotch in
+                    (mp ++ lp , opLeak x y os ++ mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "inject") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (bh/3) bh bh x y mnotch in
-                    (mp ++ lp , opInject x y bh ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (os/3) os bh x y pv mnotch in
+                    (mp ++ lp , opInject x y os ++ mq, lnotch , mlin ++ llin)
         Base (Sig _  (Nothing , "phi") _ _) ->
-                    let (lp , lnotch , llin) = notchLineWafer h l 0 i oi oi oo (bh/2) (bh*2) bh x y mnotch in
-                    (mp ++ lp , opPhi x y (bh/2) ++ mq, lnotch , mlin ++ llin)
+                    let (lp , lnotch , llin) = notchLineWafer h l 0 i oi oi oo (os/2) (os*2) bh x y pv mnotch in
+                    (mp ++ lp , opPhi x y (os/2) ++ mq, lnotch , mlin ++ llin)
         Base (Sig c  (Just ex , "") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
                     let sh = ' ' : show ex in 
                     let n = int2Float (length sh)in
-                    let tex = translate (x-bh/2.5) (y+bh/2) (scale (bh*0.012) (-(bh*0.012)) (charOrient bh ori c)) in
-                    let tex2 = translate (x-bh/2.5) (y+4*bh/2) (scale (bh*0.018/n) (-(bh*0.018/n)) (Text sh)) in
+                    let tex = translate (x-os/2.5) (y+os/2) (scale (os*0.012) (-(os*0.012)) (charOrient os ori (popc c))) in
+                    let tex2 = translate (x-os/2.5) (y+4*os/2) (scale (os*0.018/n) (-(os*0.018/n)) (Text sh)) in
                     if b then
-                        (mp ++ lp , mq ++ octBox x y bh (bh * 0.8) ++ [tex , tex2] , lnotch , mlin ++ llin)
+                        (mp ++ lp , mq ++ octBox x y os (os * 0.8) ++ [tex , tex2] , lnotch , mlin ++ llin)
                     else
-                        (octBox x y bh (bh * 0.8) ++ tex : tex2 : mp ++ lp , mq , lnotch , mlin ++ llin)
+                        (octBox x y os (os * 0.8) ++ tex : tex2 : mp ++ lp , mq , lnotch , mlin ++ llin)
         Base (Sig _ (Just ex , "i") _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo bh bh bh x y mnotch in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo os os bh x y pv mnotch in
                     let sh = "<" ++ show ex ++ ">" in 
                     let n = int2Float (length sh)in
-                    let tex = translate x y (textOrient bh n ori sh) in
+                    let tex = translate x y (textOrient os n ori sh) in
                     if b then
-                        (mp ++ lp , mq ++ octBox x y bh (bh * 0.8) ++ [tex] , lnotch , mlin ++ llin)
+                        (mp ++ lp , mq ++ octBox x y os (os * 0.8) ++ [tex] , lnotch , mlin ++ llin)
                     else
-                        (octBox x y bh (bh * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
+                        (octBox x y os (os * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
         Base (Sig s  _ _ _) ->
-                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (2*bh) bh bh x y mnotch in
-                    let tex = translate x y (scale (bh*0.012) (-(bh*0.012)) (charOrient bh ori s)) in
+                    let (lp , lnotch , llin) = notchLine h l 0 i oi oi oo (2*os) os bh x y pv mnotch in
+                    let tex = translate x y (scale (os*0.012) (-(os*0.012)) (charOrient os ori (popc s))) in
                     if b then
-                        (mp ++ lp , mq ++ octBox2 x y bh (bh * 0.8) ++ [tex] , lnotch , mlin ++ llin)
+                        (mp ++ lp , mq ++ octBox2 x y os (os * 0.8) ++ [tex] , lnotch , mlin ++ llin)
                     else
-                        (octBox2 x y bh (bh * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
+                        (octBox2 x y os (os * 0.8) ++ tex : mp ++ lp , mq , lnotch , mlin ++ llin)
+
+styleList :: [String]
+styleList = ["" , "0" , "3" , "2" , "w" , "col-s" , "col-r" , "col-g" , "col-b" , "col-y" , "col-c" , "col-m" , "1" , "4" , "and" , "not" , "or" , "xor" , "leak" , "inject"]
 
 -- Connecting the strings to the right side
-pictureMorphEnd :: Float -> Int -> Float -> Int -> Int -> [Vect] -> ([Picture] , [(Point , Int , Int)])
-pictureMorphEnd _ _ _ _ _ [] = ([] , [])
-pictureMorphEnd bh d h i j (a : notches) =
-    let (ep , el) = pictureMorphEnd bh d h (i+1) j notches in
-    let (linepic , linepoint) = picLine (bh*3) (h/250) a  ((h , h * frac2Float (1+i , 1+j)) , (-1 , 0)) in
+pictureMorphEnd :: Float -> Int -> Float -> Int -> Int -> Int -> [Vect] -> ([Picture] , [(Point , Int , Int)])
+pictureMorphEnd _ _ _ _ _ _ [] = ([] , [])
+pictureMorphEnd bh d h i j pv (a : notches) =
+    let (ep , el) = pictureMorphEnd bh d h (i+1) j pv notches in
+    let (linepic , linepoint) = picLine (bh*3) (h/250) a  ((h , h * frac2Float (1+i , 1+j)) , (-1 , 0)) pv in
 -- tweaked: 1+2*i / 1+2*j
     (linepic ++ ep ,
     (linepoint , 0 , i) : el)
@@ -437,6 +490,9 @@ opXor x y a =
         Line [(x+0.5*a*(1-i*i/144)**(1/2)-a*1.75 , y-a*i/10) | i <- [-10..10]]
     ]
 
+opRox :: Float -> Float -> Float -> Picture
+opRox x y a = translate (2*x) 0 (scale (-1) 1 (pictures (opXor x y a)))
+
 opGround :: Float -> Float -> Float -> [Picture]
 opGround x y a = 
     [
@@ -477,9 +533,9 @@ opInject x y a =
 opPhi :: Float -> Float -> Float -> [Picture]
 opPhi x y a = 
     [
-        color white (Polygon [(x-a , y-a*3) , (x-a , y-a) , (x-a*1/3 , y-a*2/3) , (x , y) , (x-a*1/3 , y+a*2/3) , (x-a , y+a) , (x-a , y+a*3) , (x+a , y+a*3) , (x+a , y-a*3)])
+        color white (Polygon [(x-a , y-a*3) , (x-a , y-a) , (x-a/3 , y-a*2/3) , (x , y) , (x-a/3 , y+a*2/3) , (x-a , y+a) , (x-a , y+a*3) , (x+a , y+a*3) , (x+a , y-a*3)])
         ,
-        Line [(x-a , y-a*3) , (x-a , y-a) , (x-a*1/3 , y-a*2/3) , (x , y) , (x-a , y) , (x , y) , (x-a*1/3 , y+a*2/3) , (x-a , y+a) , (x-a , y+a*3) , (x+a , y+a*3) , (x+a , y-a*3) , (x-a , y-a*3)]
+        Line [(x-a , y-a*3) , (x-a , y-a) , (x-a/3 , y-a*2/3) , (x , y) , (x-a , y) , (x , y) , (x-a/3 , y+a*2/3) , (x-a , y+a) , (x-a , y+a*3) , (x+a , y+a*3) , (x+a , y-a*3) , (x-a , y-a*3)]
     ]
 
 -- x = (1 - y*y)**(1/2)
@@ -493,36 +549,36 @@ opPhi x y a =
 
 -- screen_size   current_depth   current_width   front_counter   input_counter   input_total   output_total   box_radius   morphism_x   morphism_y   notches  
 -- -> (picture, notches, line_info)
-notchLine :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Float -> [Vect]
-    -> ([Picture] , [Vect] , [(Point , Int , Int)])
-notchLine _ _ _ i j _ out bw bh _ x y []
+notchLine :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Float 
+    -> Int -> [Vect] -> ([Picture] , [Vect] , [(Point , Int , Int)])
+notchLine _ _ _ i j _ out bw bh _ x y _ []
 -- tweaked from: 2*v - 1 - out , out
     |   i <= 0 && j <= 0    =   ([] , [((x+bw , y + bh* frac2Float (2*v - 1 - out , out+1)) , (1 , 0)) | v <- [1..out]] , [])
     |   otherwise           =   ([] , [] , [])
-notchLine h d w i j inp out bw bh bb x y (((ax , ay) , (adx , ady)) : notch)
+notchLine h d w i j inp out bw bh bb x y pv (((ax , ay) , (adx , ady)) : notch)
     |   i <= 0 && j <= 0    =   ([] , [((x+bw , y + bh* frac2Float (2*v - 1 - out , out+1)) , (1 , 0)) | v <- [1..out]] ++ ((ax , ay) , (adx , ady)) : notch , [])
-    |   i <= 0              =   let (rp , rn , rl) = notchLine h d (w+1) i (j-1) inp out bw bh bb x y notch in
-                                let (linepic , linepoint) = picLine (bb*3) (h/250) ((ax , ay) , (adx , ady))  ((x-bw , y - bh* frac2Float (2*j - 1 - inp , inp + 1)) , (-1 , 0)) in
+    |   i <= 0              =   let (rp , rn , rl) = notchLine h d (w+1) i (j-1) inp out bw bh bb x y pv notch in
+                                let (linepic , linepoint) = picLine (bb*3) (h/250) ((ax , ay) , (adx , ady))  ((x-bw , y - bh* frac2Float (2*j - 1 - inp , inp + 1)) , (-1 , 0)) pv in
                                 (linepic ++
                                     rp , rn ,
                                     (linepoint , d , w) : rl)
-    |   otherwise           =   let (rp , rn , rl) = notchLine h d (w+1) (i-1) j inp out bw bh bb x y notch in
+    |   otherwise           =   let (rp , rn , rl) = notchLine h d (w+1) (i-1) j inp out bw bh bb x y pv notch in
                                 (rp , ((ax , ay) , (adx , ady)) : rn , rl)
 
-notchLineWafer :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Float -> [Vect]
-    -> ([Picture] , [Vect] , [(Point , Int , Int)])
-notchLineWafer _ _ _ i j _ out bw bh _ x y []
+notchLineWafer :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Float 
+    -> Int -> [Vect] -> ([Picture] , [Vect] , [(Point , Int , Int)])
+notchLineWafer _ _ _ i j _ out bw bh _ x y _ []
 -- tweaked from: 2*v - 1 - out , out
     |   i <= 0 && j <= 0    =   ([] , [((x+bw , y + bh* frac2Float (2*v - 1 - out , out+1)) , (0.7 , frac2Float (2*v - 1 - out , out))) | v <- [1..out]] , [])
     |   otherwise           =   ([] , [] , [])
-notchLineWafer h d w i j inp out bw bh bb x y (((ax , ay) , (adx , ady)) : notch)
+notchLineWafer h d w i j inp out bw bh bb x y pv (((ax , ay) , (adx , ady)) : notch)
     |   i <= 0 && j <= 0    =   ([] , [((x+bw , y + bh* frac2Float (2*v - 1 - out , out+1)) , (0.7 , frac2Float (2*v - 1 - out , out))) | v <- [1..out]] 
                                         ++ ((ax , ay) , (adx , ady)) : notch , [])
     |   i <= 0              =   
-        let (rp , rn , rl) = notchLineWafer h d (w+1) i (j-1) inp out bw bh bb x y notch in
-        let (linepic , linepoint) = picLine (bb*3) (h/250) ((ax , ay) , (adx , ady)) ((x-bw , y - bh* frac2Float (2*j - 1 - inp , inp + 1)) , (-0.7 , - frac2Float (2*j - 1 - inp , inp))) in
+        let (rp , rn , rl) = notchLineWafer h d (w+1) i (j-1) inp out bw bh bb x y pv notch in
+        let (linepic , linepoint) = picLine (bb*3) (h/250) ((ax , ay) , (adx , ady)) ((x-bw , y - bh* frac2Float (2*j - 1 - inp , inp + 1)) , (-0.7 , - frac2Float (2*j - 1 - inp , inp))) pv in
             (linepic ++ rp , rn , (linepoint , d , w) : rl)
-    |   otherwise           =   let (rp , rn , rl) = notchLineWafer h d (w+1) (i-1) j inp out bw bh bb x y notch in
+    |   otherwise           =   let (rp , rn , rl) = notchLineWafer h d (w+1) (i-1) j inp out bw bh bb x y pv notch in
                                 (rp , ((ax , ay) , (adx , ady)) : rn , rl)
 
 -- Computing line segment from radius and direction
@@ -539,50 +595,50 @@ radSwap (x , y) rad ang
                                                 let dy = sin ang in ((x + rad * dx , y + rad * dy) , (dx , dy))
 
 -- Connect input strings and return output string positions and directions for a circular operation
-notchLineCirc :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> [Vect]
+notchLineCirc :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Int -> [Vect]
     -> ([Picture] , [Vect] , [(Point , Int , Int)])
-notchLineCirc _ _ _ i j _ out rad _ x y []
+notchLineCirc _ _ _ i j _ out rad _ x y _ []
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (2*v - 1 - out , out * 2))  | v <- [1..out]] , [])
     |   otherwise           =   ([] , [] , [])
-notchLineCirc h d w i j inp out rad bb x y (a : notch)
+notchLineCirc h d w i j inp out rad bb x y pv (a : notch)
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (2*v - 1 - out , out * 2)) | v <- [1..out]] ++ a : notch , [])
-    |   i <= 0              =   let (rp , rn , rl) = notchLineCirc h d (w+1) i (j-1) inp out rad bb x y notch in
-                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi + pi * frac2Float (2*j - 1 - inp , 2 * inp))) in
+    |   i <= 0              =   let (rp , rn , rl) = notchLineCirc h d (w+1) i (j-1) inp out rad bb x y pv notch in
+                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi + pi * frac2Float (2*j - 1 - inp , 2 * inp))) pv in
                                 (linepic ++
                                     rp , rn ,
                                     (linepoint , d , w) : rl)
-    |   otherwise           =   let (rp , rn , rl) = notchLineCirc h d (w+1) (i-1) j inp out rad bb x y notch in
+    |   otherwise           =   let (rp , rn , rl) = notchLineCirc h d (w+1) (i-1) j inp out rad bb x y pv notch in
                                 (rp , a : rn , rl)
 
-notchLineCirc2 :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> [Vect]
+notchLineCirc2 :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Int -> [Vect]
     -> ([Picture] , [Vect] , [(Point , Int , Int)])
-notchLineCirc2 _ _ _ i j _ out rad _ x y []
+notchLineCirc2 _ _ _ i j _ out rad _ x y _ []
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (2*v - 2 - out + 1 , out * 2 - 2))  | v <- [1..out]] , [])
     |   otherwise           =   ([] , [] , [])
-notchLineCirc2 h d w i j inp out rad bb x y (a : notch)
+notchLineCirc2 h d w i j inp out rad bb x y pv (a : notch)
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (2*v - 2 - out + 1 , out * 2 - 2)) | v <- [1..out]] ++ a : notch , [])
-    |   i <= 0              =   let (rp , rn , rl) = notchLineCirc2 h d (w+1) i (j-1) inp out rad bb x y notch in
-                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi + pi * frac2Float (2*j - 2 - inp + 1 , 2 * inp - 2))) in
+    |   i <= 0              =   let (rp , rn , rl) = notchLineCirc2 h d (w+1) i (j-1) inp out rad bb x y pv notch in
+                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi + pi * frac2Float (2*j - 2 - inp + 1 , 2 * inp - 2))) pv in
                                 (linepic ++
                                     rp , rn ,
                                     (linepoint , d , w) : rl)
-    |   otherwise           =   let (rp , rn , rl) = notchLineCirc2 h d (w+1) (i-1) j inp out rad bb x y notch in
+    |   otherwise           =   let (rp , rn , rl) = notchLineCirc2 h d (w+1) (i-1) j inp out rad bb x y pv notch in
                                 (rp , a : rn , rl)
 
 -- Connect input strings and return output string positions and directions for a circular operation
-notchLineVert :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> [Vect]
-    -> ([Picture] , [Vect] , [(Point , Int , Int)])
-notchLineVert _ _ _ i j _ out rad _ x y []
+notchLineVert :: Float -> Int -> Int -> Int -> Int -> Int -> Int -> Float -> Float -> Float -> Float -> Int 
+    -> [Vect] -> ([Picture] , [Vect] , [(Point , Int , Int)])
+notchLineVert _ _ _ i j _ out rad _ x y _ []
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (v , out - 1) - pi/2)  | v <- [0..out-1]] , [])
     |   otherwise           =   ([] , [] , [])
-notchLineVert h d w i j inp out rad bb x y (a : notch)
+notchLineVert h d w i j inp out rad bb x y pv (a : notch)
     |   i <= 0 && j <= 0    =   ([] , [radVect (x , y) rad (pi * frac2Float (v , out - 1) - pi/2) | v <- [0..out-1]] ++ a : notch , [])
-    |   i <= 0              =   let (rp , rn , rl) = notchLineVert h d (w+1) i (j-1) inp out rad bb x y notch in
-                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi/2 + pi * frac2Float (j - 1 , inp - 1))) in
+    |   i <= 0              =   let (rp , rn , rl) = notchLineVert h d (w+1) i (j-1) inp out rad bb x y pv notch in
+                                let (linepic , linepoint) = picLine (bb*3) (h/250) a (radVect (x , y) rad (pi/2 + pi * frac2Float (j - 1 , inp - 1))) pv in
                                 (linepic ++
                                     rp , rn ,
                                     (linepoint , d , w) : rl)
-    |   otherwise           =   let (rp , rn , rl) = notchLineVert h d (w+1) (i-1) j inp out rad bb x y notch in
+    |   otherwise           =   let (rp , rn , rl) = notchLineVert h d (w+1) (i-1) j inp out rad bb x y pv notch in
                                 (rp , a : rn , rl)
 
 -- ============================
@@ -597,11 +653,11 @@ pictureLine2 h r (x , y) (z , w) = pictures [Line [
     (x + i*(z-x)/12 + max 0 (h+(x-z)/(2*pi)) *sin (pi*i/6) ,
     y + (1 - cos (pi*i/12))*(w-y)/2) | i <- [0..12]] , translate ((x+z)/2) ((y+w)/2) (Circle r)]
 
-picLine :: Float -> Float -> Vect -> Vect -> ([Picture] , Point)
-picLine h r a b =
+picLine :: Float -> Float -> Vect -> Vect -> Int -> ([Picture] , Point)
+picLine h r a b v =
     let s = sqrt (max (h * h) (h * (fst (fst b) - fst (fst a)))) in
     let (mx , my) = picLineCoor s a b 0.5 in
-    ([Line [picLineCoor s a b (t / 16) | t <- [0..16] ] , translate mx my (Circle r)] , (mx , my))
+    ([Line [picLineCoor s a b (int2Float t / int2Float v) | t <- [0..v] ] , translate mx my (Circle r)] , (mx , my))
 
 picLineCoor :: Float -> Vect -> Vect -> Float -> Point
 picLineCoor h ((ax , ay) , (adx , ady)) ((bx , by) , (bdx , bdy)) t =
@@ -650,6 +706,22 @@ mrRew MLarger   = RS MLarger (Start 0) "" Axiom
 mrRew MSmaller  = RS MSmaller (Start 0) "" Axiom
 
 
+-- wavePicture :: Float -> Float -> Float -> Picture -> Picture
+-- wavePicture size x r (Polygon _) = Blank
+-- wavePicture size x r (Line _) = Blank
+-- wavePicture size x r (Circle _) = Blank
+-- wavePicture size x r (ThickCircle _ _) = Blank
+-- wavePicture size x r (Arc _ _ _) = Blank
+-- wavePicture size x r (ThickArc _ _ _ _) = Blank
+-- wavePicture size x r (Text _) = Blank
+-- wavePicture size x r (Bitmap _) = Blank
+-- wavePicture size x r (BitmapSection _ _) = Blank
+-- wavePicture size x r (Color _ _) = Blank
+-- wavePicture size x r (Translate _ _ _) = Blank
+-- wavePicture size x r (Scale _ _ _) = Blank
+-- wavePicture size x r (Rotate _ _) = Blank
+-- wavePicture size x r (Pictures _) = Blank
+-- wavePicture size x r Blank = Blank
 
 -- ===================
 -- =  Latex  export  =
@@ -828,11 +900,11 @@ swappers (x : y : l) = y : x : l
 swappers l = l
 
 opTikzer :: Oper -> (String , String)
-opTikzer (Base (Sig 'c' _ _ _)) = ("style=black" , "")
-opTikzer (Base (Sig 'd' _ _ _)) = ("style=black" , "")
-opTikzer (Base (Sig 'l' _ _ _)) = ("l" , "")
-opTikzer (Base (Sig 'q' _ _ _)) = ("l" , "")
-opTikzer (Base (Sig x _ _ _)) = ("style=box" , "$" ++ x : "$")
+opTikzer (Base (Sig "c" _ _ _)) = ("style=black" , "")
+opTikzer (Base (Sig "d" _ _ _)) = ("style=black" , "")
+opTikzer (Base (Sig "l" _ _ _)) = ("l" , "")
+opTikzer (Base (Sig "q" _ _ _)) = ("l" , "")
+opTikzer (Base (Sig x _ _ _)) = ("style=box" , "$" ++ x ++ "$")
 opTikzer _ = ("" , "")
 
 heightMorph :: Morph -> Int 
@@ -847,7 +919,7 @@ widthMorph (Op m a op)
     |   otherwise                   =   1   + widthMorph m 
 
 isSwap :: Oper -> Bool 
-isSwap (Base (Sig 'x' _ _ _)) = True 
+isSwap (Base (Sig "x" _ _ _)) = True 
 isSwap _ = False
 
 
@@ -874,13 +946,13 @@ stringSplit w s =  stringSplit' w "" s
 
 stringSplit' :: Int -> String -> String -> [String]
 stringSplit' w z s = 
-    case untilC ' ' s of 
-        Just (s1 , s2)  ->  
+    case untilC "" ' ' s of 
+        Cor (s1 , s2 , _)  ->  
             if stringW (z ++ s1 ++ " ") <= w then 
                 stringSplit' w (z ++ s1 ++ " ") s2 
             else 
                 z : stringSplit' w "" (s1 ++ " " ++ s2)
-        Nothing -> 
+        Err _ -> 
             if stringW (z ++ " " ++ s) <= w then 
                 [z ++ s]
             else 

@@ -1,7 +1,7 @@
 
 import theory/Frobenius
 
-op  f : 1 -> 1
+op  R : 1 -> 1
 
 
 # relational order #
@@ -29,28 +29,54 @@ lem  rel-copy-inv (1) {
 
 # schemas #
 def  rel-nat-discard (1) {
-	0:f,0:d 
+	0:R,0:d 
 	<
 	0:d
 }
 lem  rel-nat-exists (0) {
-	0:b,0:f
+	0:b,0:R
 	<
 	0:b
 }
 def  rel-nat-copy (1) {
-	0:f,0:c
+	0:R,0:c
 	<
-	0:c,0:f,1:f
+	0:c,0:R,1:R
 }
 lem  rel-nat-copy (2) {
-	0:e,0:f
+	0:e,0:R
 	<
-	0:f,1:f,0:e
+	0:R,1:R,0:e
 }
 
-L{1}{0.c;0.f;1.f;0.e;}<{0.f;}
-L{1}{0.c;0.f;1.f;0.e;}>{0.f;}
+lem  Rubble< (1) {
+    0:c, 0:R, 1:R, 0:e
+    <
+    0:R
+}
+
+proof  (1) {
+	0:c, 0:R, 1:R, 0:[rel-discard (1) {id < 0:d, 0:b}], 0:e
+	=
+	0:c, 0:[rel-nat-discard (1) {0:R, 0:d < 0:d}], 0:R, 0:b, 0:e
+	=
+	0:c, 0:d, 0:R, 0:[unitality (1) {0:b, 0:e = id}]
+	=
+	0:[M(unitality) (1) {0:c, 0:d = id}], 0:R
+}
+
+
+lem  Rubble> (1) {
+    0:c, 0:R, 1:R, 0:e
+    >
+    0:R
+}
+
+proof  (1) {
+	0:[rel-nat-copy (1) {0:c, 0:R, 1:R > 0:R, 0:c}], 0:e
+	=
+	0:R, 0:[rel-copy (1) {0:c, 0:e > id}]
+}
 
 
 

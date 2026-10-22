@@ -1,0 +1,234 @@
+# Layer 1: Option Commutative ring #
+# Theory of rings with three operations and relevant equations #
+
+# Dependencies #
+import algebra/com
+
+op m : 2 -> 1 [col-silver]
+op u : 0 -> 1 [col-silver]
+
+
+schema  naturality {x,c} {m,u}
+schema  naturality {x,d} {m,u}
+
+
+def  mult-assoc (3) {
+    0:m, 0:m
+    =
+    1:m, 0:m
+}
+
+def  mult-comm (2) {
+    0:x, 0:m
+    =
+    0:m
+}
+
+def  mult-unital (1) {
+    0:u, 0:m
+    =
+    id
+}
+
+lem  mult-unital2 (1) {
+    1:u, 0:m
+    =
+    id
+}
+
+def  mult-cancel (1) {
+    0:e, 0:m
+    =
+    0:d, 0:e
+}
+
+lem  mult-cancel2 (1) {
+    1:e, 0:m
+    =
+    0:d, 0:e
+}
+
+lem  0x1m=1x0m0x (3) {
+    0:x, 1:m
+    =
+    1:x, 0:m, 0:x
+}
+
+proof  (3) {
+	1:[DoubleSwap (2) {id = 0:x, 0:x}], 0:x, 1:m
+	=
+	1:x, 0:[SymD(x,m) (3) {1:x, 0:x, 1:m = 0:m, 0:x}]
+}
+
+
+def  mult-distrib (3) {
+    0:o, 0:m
+    =
+    2:c, 1:x, 0:m, 1:m, 0:o
+}
+
+lem  Lemma-60 (3) {
+    1:o, 0:m
+    =
+    0:c, 1:x, 0:m, 1:m, 0:o
+}
+
+proof  (3) {
+	1:o, 0:[mult-comm (2) {0:m = 0:x, 0:m}]
+	=
+	0:[SymU(x,o) (3) {1:o, 0:x = 0:x, 1:x, 0:o}], 0:m
+	=
+	0:x, 1:x, 0:[mult-distrib (3) {0:o, 0:m = 2:c, 1:x, 0:m, 1:m, 0:o}]
+	=
+	0:x, 1:[SymD(x,c) (2) {0:x, 1:c = 0:c, 1:x, 0:x}], 1:x, 0:m, 1:m, 0:o
+	=
+	0:x, 1:c, 2:x, 1:[DoubleSwap (2) {0:x, 0:x = id}], 0:m, 1:m, 0:o
+	=
+	0:x, 1:c, 0:m, 1:[mult-comm (2) {0:x, 0:m = 0:m}], 0:o
+	=
+	0:[SymD(x,c) (2) {0:x, 1:c = 0:c, 1:x, 0:x}], 0:m, 1:m, 0:o
+	=
+	0:c, 1:x, 0:[mult-comm (2) {0:x, 0:m = 0:m}], 1:m, 0:o
+}
+
+lem  0n0o=1n0o0n (2) {
+    0:n, 0:o
+    =
+    1:n, 0:o, 0:n
+}
+
+proof  (2) {
+	0:n, 0:o, 0:[Double-Inverse (1) {id = 0:n, 0:n}]
+	=
+	0:n, 0:[Inv-op (2) {0:o, 0:n = 0:n, 1:n, 0:o}], 0:n
+	=
+	0:[Double-Inverse (1) {0:n, 0:n = id}], 1:n, 0:o, 0:n
+}
+
+
+lem  1n0o=0n0o0n (2) {
+    1:n, 0:o
+    =
+    0:n, 0:o, 0:n
+}
+
+proof  (2) {
+	1:n, 0:o, 0:[Double-Inverse (1) {id = 0:n, 0:n}]
+	=
+	1:n, 0:[Inv-op (2) {0:o, 0:n = 0:n, 1:n, 0:o}], 0:n
+	=
+	0:n, 1:[Double-Inverse (1) {0:n, 0:n = id}], 0:o, 0:n
+}
+
+
+lem  1n0m=0m0n (2) {
+    1:n, 0:m
+    =
+    0:m, 0:n
+}
+
+proof  (2) {
+	1:[Copy-unital (1) {id = 0:c, 0:d}], 1:n, 0:m
+	=
+	1:c, 0:[SymU(x,d) (2) {1:d = 0:x, 0:d}], 1:n, 0:m
+	=
+	1:c, 0:[Copy-unital (1) {id = 0:c, 0:d}], 0:x, 0:d, 1:n, 0:m
+	=
+	1:c, 0:c, 1:x, 0:[Dist(x,d,m) (2) {0:d, 0:d = 0:m, 0:d}], 1:n, 0:m
+	=
+	1:c, 0:c, 1:x, 0:m, 0:d, 1:n, 0:m, 0:[Group-unital (1) {id = 0:e, 0:o}]
+	=
+	1:c, 0:c, 1:x, 0:m, 0:[Group-inverse (1) {0:d, 0:e = 0:c, 0:n, 0:o}], 2:n, 1:m, 0:o
+	=
+	1:c, 0:c, 1:x, 0:[Dist(x,c,m) (2) {0:m, 0:c = 0:c, 2:c, 1:x, 0:m, 1:m}], 0:n, 0:o, 2:n, 1:m, 0:o
+	=
+	1:c, 0:c, 1:x, 0:c, 2:c, 1:x, 0:m, 1:m, 0:n, 3:n, 2:m, 0:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}]
+	=
+	1:c, 0:c, 1:[SymU(x,c) (2) {0:x, 0:c = 1:c, 0:x, 1:x}], 0:c, 1:x, 0:m, 1:m, 0:n, 3:n, 2:m, 1:o, 0:o
+	=
+	1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 0:c, 1:x, 2:x, 0:c, 1:x, 0:m, 1:m, 0:n, 3:n, 2:m, 1:o, 0:o
+	=
+	1:c, 2:c, 0:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:x, 3:x, 1:x, 0:m, 1:m, 0:n, 3:n, 2:m, 1:o, 0:o
+	=
+	1:c, 2:c, 0:c, 1:[SymD(x,c) (2) {0:c, 1:x, 0:x = 0:x, 1:c}], 3:x, 0:m, 1:m, 0:n, 3:n, 2:m, 1:o, 0:o
+	=
+	1:c, 0:c, 1:x, 3:c, 0:m, 0:n, 3:n, 1:[Lemma-60 (3) {0:c, 1:x, 0:m, 1:m, 0:o = 1:o, 0:m}], 0:o
+	=
+	1:c, 0:c, 1:x, 3:[Group-inverse2 (1) {0:c, 1:n, 0:o = 0:d, 0:e}], 0:m, 0:n, 1:m, 0:o
+	=
+	1:c, 0:c, 1:x, 3:d, 0:m, 0:n, 1:[mult-cancel2 (1) {1:e, 0:m = 0:d, 0:e}], 0:o
+	=
+	1:c, 0:c, 1:x, 3:d, 0:m, 0:n, 1:d, 0:[Group-unital2 (1) {1:e, 0:o = id}]
+	=
+	0:c, 2:[Copy-unital2 (1) {0:c, 1:d = id}], 1:x, 0:m, 0:n, 1:d
+	=
+	0:c, 1:[SymD(x,d) (2) {0:x, 1:d = 0:d}], 0:m, 0:n
+	=
+	0:[Copy-unital2 (1) {0:c, 1:d = id}], 0:m, 0:n
+}
+
+
+lem  0n0m=0m0n (2) {
+    0:n, 0:m
+    =
+    0:m, 0:n
+}
+
+proof  (2) {
+	0:n, 0:[mult-comm (2) {0:m = 0:x, 0:m}]
+	=
+	0:[SymD(x,n) (2) {0:n, 0:x = 0:x, 1:n}], 0:m
+	=
+	0:x, 0:[1n0m=0m0n (2) {1:n, 0:m = 0:m, 0:n}]
+	=
+	0:[mult-comm (2) {0:x, 0:m = 0:m}], 0:n
+}
+
+
+lem  Lemma-61 (2) {
+    0:c, 2:c, 1:x, 3:n, 0:o, 1:o, 0:m
+    =
+    1:c, 0:c, 2:m, 0:m, 1:n, 0:o
+}
+
+proof  (2) {
+	0:c, 2:c, 1:x, 3:n, 0:o, 0:[Lemma-60 (3) {1:o, 0:m = 0:c, 1:x, 0:m, 1:m, 0:o}]
+	=
+	0:c, 2:c, 1:x, 3:n, 0:o, 0:[Copy-wire-up (2) {0:c, 1:x = 0:x, 1:c, 0:x}], 0:m, 1:m, 0:o
+	=
+	0:c, 2:c, 0:[0x1o=1x0o0x (3) {1:x, 0:o, 0:x = 0:x, 1:o}], 2:n, 1:c, 0:x, 0:m, 1:m, 0:o
+	=
+	0:c, 2:c, 0:x, 1:o, 2:n, 1:c, 2:m, 0:[mult-comm (2) {0:x, 0:m = 0:m}], 0:o
+	=
+	1:c, 2:n, 0:[Copy-commutative (1) {0:c, 0:x = 0:c}], 1:o, 1:c, 2:m, 0:m, 0:o
+	=
+	0:c, 2:c, 1:o, 1:c, 0:m, 1:[1n0m=0m0n (2) {1:n, 0:m = 0:m, 0:n}], 0:o
+	=
+	0:c, 2:c, 1:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 2:m, 0:m, 1:n, 0:o
+	=
+	0:c, 2:c, 1:c, 3:c, 2:x, 1:o, 2:[mult-distrib (3) {0:o, 0:m = 2:c, 1:x, 0:m, 1:m, 0:o}], 0:m, 1:n, 0:o
+	=
+	0:c, 2:c, 1:c, 3:c, 2:x, 5:c, 4:x, 3:m, 4:m, 0:[Lemma-60 (3) {1:o, 0:m = 0:c, 1:x, 0:m, 1:m, 0:o}], 1:o, 1:n, 0:o
+	=
+	1:c, 0:[Copy-interchange (1) {0:c, 0:c, 2:c, 1:x = 0:c, 0:c, 2:c}], 4:c, 3:x, 6:c, 5:x, 4:m, 5:m, 0:m, 1:m, 0:o, 1:o, 1:n, 0:o
+	=
+	0:c, 0:c, 3:[Copy-interchange (1) {0:c, 0:c, 2:c, 1:x = 0:c, 0:c, 2:c}], 2:c, 3:x, 4:m, 5:m, 0:m, 1:m, 0:o, 1:o, 1:n, 0:o
+	=
+	0:c, 0:c, 3:c, 4:c, 2:[Dist(x,c,m) (2) {0:c, 2:c, 1:x, 0:m, 1:m = 0:m, 0:c}], 4:m, 0:m, 0:o, 1:o, 1:n, 0:o
+	=
+	0:c, 0:c, 3:c, 4:c, 2:m, 2:c, 4:m, 0:m, 0:o, 1:[Inv-op (2) {0:o, 0:n = 0:n, 1:n, 0:o}], 0:o
+	=
+	0:c, 0:c, 3:c, 4:c, 2:m, 2:c, 4:m, 0:m, 0:o, 1:n, 2:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}]
+	=
+	0:c, 0:c, 3:c, 4:c, 2:m, 2:c, 4:m, 0:m, 2:n, 3:n, 0:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 0:o
+	=
+	1:c, 2:c, 0:c, 0:c, 2:m, 0:m, 2:m, 2:n, 1:[Group-inverse2 (1) {0:c, 1:n, 0:o = 0:d, 0:e}], 0:o, 0:o
+	=
+	1:c, 2:c, 0:c, 0:c, 2:m, 0:m, 2:m, 2:n, 1:d, 0:[Group-unital2 (1) {1:e, 0:o = id}], 0:o
+	=
+	1:c, 2:c, 0:c, 0:c, 2:[Dist(x,d,m) (2) {0:m, 0:d = 0:d, 0:d}], 0:m, 1:m, 1:n, 0:o
+	=
+	1:[Copy-unital (1) {0:c, 0:d = id}], 1:c, 0:c, 0:c, 2:d, 0:m, 1:m, 1:n, 0:o
+	=
+	1:c, 0:[Copy-unital2 (1) {0:c, 1:d = id}], 0:c, 0:m, 1:m, 1:n, 0:o
+}

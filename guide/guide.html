@@ -78,7 +78,7 @@ The rest of the buttons have to do with navigating theories.
 
 <p>
 When opening the Box of Strings tool, you are shown a list of files it has found within the input folder. Before opening the file, you can scroll to resize the draw-scale of the tool, the border being given by the rectangle. Left-clicking on a file will open it, displaying the first page of the theory contained in it.
-When opened, you can use the "Next" and "Back" button to go to the next or the previous page respectively. If the file imports other files, the "Back" button will go into these files as well.
+When opened, you can use the "Next page" and "Previous page" button to go to the next or the previous page respectively. If the file imports other files, the "Previous page" button will go into these files as well.
 At any point, you can click "Load file" to go back to the list of available files to load another one.
 </p>
 
@@ -108,7 +108,7 @@ Your browser does not support the video tag.
 <h3>Proofs</h3>
 
 <p>
-Sometimes a file has proofs saved in them. To ensure available proofs are displayed, Right-click on the file in the file select instead of left-clicking. Then, after any Lemma with a proof stored, the proof will be displayed in the page after the Lemma.
+Sometimes a file has proofs saved in them. You can load them in by clicking the "Load proof" button. The same button allows you to also save and overwrite proofs.
 </p>
 
 <h3>Additional features</h3>
@@ -118,11 +118,11 @@ You can look at the currently available rewrites by clicking on the "Equations" 
 </p>
 
 <p>
-"Add Rel" will add the currently proven rewrite to the current collection of rewrites, from this page on. That is, regardless of the page type you are in, it will take the initial state and the final state of your sequence of rewrites. This added rewrite will only be available as long as the file is loaded in.
+"Save rewrite" will add the currently proven rewrite to the current collection of rewrites, from this page on. That is, regardless of the page type you are in, it will take the initial state and the final state of your sequence of rewrites. This added rewrite will only be available as long as the file is loaded in.
 </p>
 
 <p>
-"Zoom" will take the first Box it can find, and create a new "Show"-type page in front of the current page. This can then be used to investigate the diagram and prove things on the fly. You can use this in conjunction with "Add Rel", to zoom into a part of the diagram and prove something about it, before returning to the original page.
+"Zoom in box" will take the first Box it can find, and create a new "Show"-type page in front of the current page. This can then be used to investigate the diagram and prove things on the fly. You can use this in conjunction with "Save rewrite", to zoom into a part of the diagram and prove something about it, before returning to the original page.
 Use the middle mouse button on a box to add a new operation which is asserted to be equal to the content of the box.
 </p>
 
@@ -137,11 +137,11 @@ Modifying the displayed diagram: Scroll to add or remove strings at the bottom. 
 </p>
 
 <p>
-Specifying rewrites: Click on the options on the right to shift between definition (axiom) and lemma. When you have finished typesetting the initial state of the rewrite, press next to go to the goal state. This will copy the current state, which you can now edit. If the goal state is kept equal to the starting state, the string diagram will be added as a Show-type.
+Specifying rewrites: Click on the options on the right to shift between definition (axiom) and lemma. Click on the top and bottom diagram to shift between creating the two sides of the relation. You can change name and relation type as well. When typing the name, the Backspace key may not work, in which case you should use the Delete key.
 </p>
 
 <p>
-Adding operations: If you type a character on the keyboard not bound to any existing operation, you intiate adding a new operation. Specify by typing two digits the number of input strings and output strings respectively.
+Adding operations: If you type a character on the keyboard not bound to any existing operation, or press the "Create new op" button, you intiate adding a new operation. Specify by typing two digits the number of input strings and output strings respectively.
 </p>
 
 <p>
@@ -251,11 +251,6 @@ Naturality schema, specifically for operation "c", with "x" used as swap operati
 The flip schema asserts that each diagram also holds upside down. It specifies two sequences of operations, the first signifying which operations can be put upside down, and the second signifies the upside down version of those operations. Here they are the same.
 </p>
 
-<h3>Quick tips</h3>
-
-<p>
-If you run the tool from a terminal, and press "y", it will display the code for the current page as well as the current proof you constructed.
-</p>
 
 </body>
 </html>

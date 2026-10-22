@@ -41,10 +41,11 @@ lem  Copy-Leak-2 (1) {
 }
 
 proof  (1) {
-        0:c, 0:[Dist(x,d,q) (1) {0:q > 0:d}], 0:q
-        =
-        0:[Copy-unital (1) {0:c, 0:d = id}], 0:q
+	0:[Copy-unital (1) {id = 0:c, 0:d}], 0:q
+	=
+	0:c, 0:[Discard-Leak (1) {0:d < 0:q}], 0:q
 }
+
 
 note {By anti-symmetry, leaking something twice is the same as leaking it once.}
 lem  Copy-Leak (1) {
@@ -155,3 +156,16 @@ proof  (1) {
         0:[Leaky-identity (1) {0:c, 1:q = 0:l}], 0:d
 }
 
+
+
+def  Axiom-41 (2) {
+    0:f, 1:c, 0:x
+    =
+    0:f, 1:c, 0:x
+}
+
+lem  Lemma-45 (2) {
+    0:l, 1:l, 0:f, 1:c, 0:x, 0:l, 1:l, 2:l
+    =
+    0:l, 1:l, 0:f, 1:c, 0:x
+}

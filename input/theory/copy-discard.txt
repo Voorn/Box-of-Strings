@@ -2,7 +2,7 @@
 
 # Dependencies #
 import theory/symmetry
-
+ 
 # Operations #
 op  c : 1 -> 2  [2]
 op  d : 1 -> 0  [2]

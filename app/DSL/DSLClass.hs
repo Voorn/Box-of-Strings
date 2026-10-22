@@ -5,8 +5,8 @@ module DSL.DSLClass
   , DSLInterpreter(..)
   ) where
 
-import SemanticFree (Semantic, Bundle)
-import SemanticInterpreterPoly (Env)
+import Semantics.SemanticFree (Semantic, Bundle)
+import Semantics.SemanticInterpreterPoly (Env)
 
 -- =====================================================
 -- DSL MONAD TYPE CLASS

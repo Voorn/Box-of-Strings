@@ -20,7 +20,7 @@ name:               stringbox
 -- PVP summary:     +-+------- breaking API changes
 --                  | | +----- non-breaking API additions
 --                  | | | +--- code changes with no API change
-version:            0.5.0.0
+version:            0.8.0.0
 
 -- A short (one-line) description of the package.
 synopsis: Tool for rewriting string diagrams using mouse controls
@@ -50,7 +50,8 @@ extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall
+    ghc-options:    -Wall,
+                    -Wunused-binds
 
 executable Box_of_Strings
     -- Import common warning flags.
@@ -61,30 +62,32 @@ executable Box_of_Strings
 
     -- Modules included in this executable, other than Main.
     other-modules:    Morph, 
-                      Rewrite, 
+                      Proof,
                       Gloss.World,
                       Gloss.Actions,
                       Gloss.Event, 
-                      Gloss.Display, 
-                      Parse,
-                      Theory,
-                      Par,
-                      Par2,
-                      Matcher,
-                      Write,
-                      SemanticFree,
-                      Proof,
-                      HyperMatch,
-                      Evaluation,
-                      SemanticInterpreterPoly,
+                      Gloss.Display,
+                      Gloss.Screen, 
+                      Theory.Theory,
+                      Theory.Par,
+                      Theory.Par2,
+                      Theory.Rewrite, 
+                      Theory.Matcher,
+                      Theory.HyperMatch,
+                      IO.Write,
+                      IO.Parse,
+                      IO.Config,
+                      Semantics.SemanticFree,
+                      Semantics.Evaluation,
+                      Semantics.SemanticInterpreterPoly,
+                      Semantics.Equivalence,
+                      Semantics.CodeGen,
                       DSL.DSLClass,
                       DSL.BooleanDSL,
                       DSL.ProbCircDSL,
                       DSL.ArithmeticDSL,
                       DSL.StandardMonad,
-                      DSL.ProbabilisticMonad,
-                      Equivalence,
-                      CodeGen
+                      DSL.ProbabilisticMonad
     
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -97,7 +100,8 @@ executable Box_of_Strings
                       containers,
                       mtl,
                       text,
-                      random
+                      random,
+                      proteaaudio
 
     -- Directories containing source files.
     hs-source-dirs:   app

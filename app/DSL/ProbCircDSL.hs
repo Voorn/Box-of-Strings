@@ -16,15 +16,17 @@ module DSL.ProbCircDSL
   , probCircEnvWithInputs
   , toSymbolic
   , prettyExpr
+  , printProb
   ) where
 
 import DSL.DSLClass
 import DSL.ProbabilisticMonad
-import SemanticInterpreterPoly
+import Semantics.SemanticInterpreterPoly
 import qualified Data.Map as Map
-import SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
+import Semantics.SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
 import Control.Monad.Except
 
+import Morph
 
 
 -- =====================================================
@@ -67,7 +69,7 @@ newtype ProbCircDSL a = ProbCircDSL { unProbCircDSL :: ProbDSL a }
 
 instance DSLMonad ProbCircDSL where
   type DSLValue ProbCircDSL = ProbCircValue
-  runDSL (ProbCircDSL m) = 
+  runDSL (ProbCircDSL m) =
     case unDist (runExceptT (unProbDSL m)) of
       [(Right x, _)] -> Right x
       [(Left e, _)]  -> Left e
@@ -76,7 +78,7 @@ instance DSLMonad ProbCircDSL where
 
 instance DSLInterpreter ProbCircDSL where
   makeEnv = probCircEnv
-  makeEnvWithInputs vals = (probCircEnv (length vals)) 
+  makeEnvWithInputs vals = (probCircEnv (length vals))
     { varMapping = Map.fromList [(Var i, v) | (i, v) <- zip [0..] vals] }
 
 -- =====================================================
@@ -96,6 +98,10 @@ opAnd _ = liftError "AND: requires concrete Boolean values"
 opOr :: [ProbCircValue] -> ProbCircDSL [ProbCircValue]
 opOr [PVConst a, PVConst b] = return [PVConst (a || b)]
 opOr _ = liftError "OR: requires concrete Boolean values"
+
+opXor :: [ProbCircValue] -> ProbCircDSL [ProbCircValue]
+opXor [PVConst a, PVConst b] = return [PVConst ((a && not b) || (not a && b))]
+opXor _ = liftError "OR: requires concrete Boolean values"
 
 opNot :: [ProbCircValue] -> ProbCircDSL [ProbCircValue]
 opNot [PVConst a] = return [PVConst (not a)]
@@ -126,7 +132,7 @@ opEquals [PVConst a, PVConst b] = return [PVConst (a == b)]
 opEquals _ = liftError "EQUALS: requires two concrete Boolean values"
 
 opCondit :: [ProbCircValue] -> ProbCircDSL [ProbCircValue]
-opCondit [PVConst a , PVConst b] 
+opCondit [PVConst a , PVConst b]
     |   a == b = ProbCircDSL (liftDist (Dist [([PVConst a] , 1)]))
     |   otherwise = ProbCircDSL  (liftDist (Dist []))
 opCondit _ = liftError "Condit: crazy"
@@ -141,18 +147,19 @@ probCircEnv n = loadOps operations baseEnv
     baseEnv = emptyEnv
       { varMapping = Map.fromList [(Var i, PVVar i) | i <- [0..max 0 (n-1)]] }
     operations =
-      [ (('b', ""), opBernoulli 0.5)
-      , (('a', ""), opAnd)
-      , (('o', ""), opOr)
-      , (('n', ""), opNot)
-      , (('c', "2"), opCopy)
-      , (('d', "2"), opDiscard)
-      , (('x', "1"), opSwap)
-      , (('1', ""), opTrue)
-      , (('0', ""), opFalse)
-      , (('e', ""), opCondit)
-      , (('e', "2"), opCondit)
-      , (('?', ""), opBernoulli 0.5)
+      [ (("b", ""), opBernoulli 0.5)
+      , (("a", ""), opAnd)
+      , (("o", ""), opOr)
+      , (("n", ""), opNot)
+      , (("c", "2"), opCopy)
+      , (("d", "2"), opDiscard)
+      , (("x", "1"), opSwap)
+      , (("1", ""), opTrue)
+      , (("0", ""), opFalse)
+      , (("e", ""), opCondit)
+      , (("e", "2"), opCondit)
+      , (("r", "xor"), opXor)
+      , (("?", ""), opBernoulli 0.5)
       ]
 
 probCircEnvWithInputs :: [ProbCircValue] -> Env ProbCircDSL ProbCircValue
@@ -161,26 +168,27 @@ probCircEnvWithInputs vals = loadOps operations baseEnv
     baseEnv = emptyEnv
       { varMapping = Map.fromList [(Var i, v) | (i, v) <- zip [0..] vals] }
     operations =
-      [ (('b', ""), opBernoulli 0.5)
-      , (('a', ""), opAnd)
-      , (('o', ""), opOr)
-      , (('n', ""), opNot)
-      , (('c', "2"), opCopy)
-      , (('d', "2"), opDiscard)
-      , (('x', "1"), opSwap)
-      , (('1', ""), opTrue)
-      , (('0', ""), opFalse)
-      , (('e', ""), opCondit)
-      , (('e', "2"), opCondit)
-      , (('?', ""), opBernoulli 0.5)
+      [ (("b", ""), opBernoulli 0.5)
+      , (("a", ""), opAnd)
+      , (("o", ""), opOr)
+      , (("n", ""), opNot)
+      , (("c", "2"), opCopy)
+      , (("d", "2"), opDiscard)
+      , (("x", "1"), opSwap)
+      , (("1", ""), opTrue)
+      , (("0", ""), opFalse)
+      , (("e", ""), opCondit)
+      , (("e", "2"), opCondit)
+      , (("r", "xor"), opXor)
+      , (("?", ""), opBernoulli 0.5)
       ]
 
 -- =====================================================
 -- EVALUATION
 -- =====================================================
 
-evalProbCirc :: CompositeLibrary 
-             -> Semantic Bundle 
+evalProbCirc :: CompositeLibrary
+             -> Semantic Bundle
              -> [Bool]
              -> Dist (Either String [Bool])
 evalProbCirc lib sem inputs = do
@@ -188,9 +196,9 @@ evalProbCirc lib sem inputs = do
       env = probCircEnvWithInputs vals
       envWithComp = env { composites = lib }
       computation = runSemantic envWithComp sem
-  
+
   result <- runExceptT (unProbDSL (unProbCircDSL computation))
-  
+
   case result of
     Left err -> return (Left err)
     Right (resultVars, finalEnv) -> do
@@ -203,3 +211,64 @@ evalProbCirc lib sem inputs = do
 
 prettyDist :: (Show a, Ord a) => Dist a -> String
 prettyDist = show . squishDist
+
+
+
+-- ==========================
+
+inputFocus :: Int -> Int -> [a] -> ([a] , [a] , [a])
+inputFocus _ _ [] = ([] , [] , [])
+inputFocus i j (x : l)
+    |   i > 0       =   let (a , b , c) = inputFocus (i-1) j l  in (x : a , b , c)
+    |   j > 0       =   let (a , b , c) = inputFocus 0 (j-1) l in (a , x : b , c)
+    |   otherwise   =   ([] , [] , l)
+
+strengthDist :: [a] -> Dist [a] -> [a] -> Dist [a]
+strengthDist l (Dist p) r = Dist (fmap (\(v , t) -> (l ++ v ++ r , t)) p)
+
+libraryProb :: String -> [Bool] -> Dist [Bool]
+libraryProb "b" [] =        Dist [([True] , 0.5) , ([False] , 0.5)]
+libraryProb "?" [] =        Dist [([True] , 0.5) , ([False] , 0.5)]
+libraryProb "a" [x , y] =   Dist [([x && y] , 1)]
+libraryProb "o" [x , y] =   Dist [([x || y] , 1)]
+libraryProb "n" [x] =       Dist [([not x] , 1)]
+libraryProb "c" [x] =       Dist [([x , x] , 1)]
+libraryProb "d" [x] =       Dist [([] , 1)]
+libraryProb "x" [x , y] =   Dist [([y , x] , 1)]
+libraryProb "1" [] =        Dist [([True] , 1)]
+libraryProb "0" [] =        Dist [([False] , 1)]
+libraryProb _ l = Dist [(l , 1)]
+
+morphProb :: Morph -> [Bool] -> Dist [Bool]
+morphProb (Start _) l = Dist [(l , 1)]
+morphProb (Op m i (Base (Sig o _ a b))) l =
+    kleisProb (morphProb m l) (\r ->
+    let (ar , br , cr) = inputFocus i a r in
+    kleisProb (libraryProb o br) (\out ->
+    return (ar ++ out ++ cr)))
+
+boolList :: Int -> [[Bool]]
+boolList i
+    |   i <= 0      =   [[]]
+    |   otherwise   =   let lis = boolList (i-1) in [False : r | r <- lis] ++ [True : r | r <- lis]
+
+stringBoollist :: [Bool] -> String 
+stringBoollist l = '[' : stringBoollist' l
+
+stringBoollist' :: [Bool] -> String 
+stringBoollist' [] = "]"
+stringBoollist' (False : l) = "0" ++ if null l then "]" else "," ++ stringBoollist' l
+stringBoollist' (True : l) = "1" ++ if null l then "]" else "," ++ stringBoollist' l
+
+stringDist :: Dist [Bool] -> String
+stringDist (Dist []) = ""
+stringDist (Dist ((l , p) : rest)) = "(" ++ show p ++ ")." ++ stringBoollist l ++ if null rest then "" else " + " ++ stringDist (Dist rest)
+
+printProb :: Morph -> IO ()
+printProb m = let (a , _) = typeMorph m in do {putStrLn "Evaluating:" ; printProb' m (boolList a)}
+
+printProb' :: Morph -> [[Bool]] -> IO ()
+printProb' _ [] = return ()
+printProb' m (inp : rest) =
+    let out = morphProb m inp in
+        do {putStrLn (stringBoollist inp ++ " -> " ++ stringDist out) ; printProb' m rest}

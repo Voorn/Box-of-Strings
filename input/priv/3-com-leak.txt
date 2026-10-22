@@ -1,7 +1,8 @@
 
-import  priv/2-com-prob
+import  prob/com-prob
 import  priv/3-base-leak
 
+schema  flip  {x,c,d,o,e,n,b,s,q,l} {x,c,d,o,e,n,b,s,q,l}
 
 lem  Neutral-leak (0) {
         0:e, 0:q
@@ -144,20 +145,56 @@ lem-hide  Split-leak-1 (1) {
         0:l, 0:s, 0:l
 }
 
+lem  Any-Key (2) {
+        0:c, 0:n, 1:o, 1:l, 0:o
+        =
+        1:c, 0:o, 0:q
+}
+
 lem  One-Time-Pad (1) {
         0:e, 0:s, 1:o, 1:l, 0:o
         =
         id
 }
 
-lem  OTP-twice< (2) {
+lem  OTP-twice (2) {
         1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
-        <
+        =
         0:c, 2:c, 1:o, 1:q
 }
 
-lem  OTP-twice> (2) {
-        1:e, 1:s, 1:c, 3:c, 0:o, 1:n, 2:n, 3:o, 0:l, 3:l, 0:o, 1:o
-        >
-        0:c, 2:c, 1:o, 1:q
+proof  (2) {
+        1:e, 1:s, 2:c, 2:n, 3:o, 3:l, 2:o, 0:[F(Any-Key) (2) {1:c, 0:o, 1:n, 0:l, 0:o = 0:c, 1:o, 1:q}]
+        =
+        1:e, 1:s, 0:c, 1:o, 1:q, 1:[Any-Key (2) {0:c, 0:n, 1:o, 1:l, 0:o = 1:c, 0:o, 0:q}]
+        =
+        1:e, 1:s, 0:c, 1:o, 3:c, 2:o, 1:[Dist(x,q,o) (2) {0:q, 0:q > 0:o, 0:q}]
+        =
+        1:e, 1:s, 0:c, 4:c, 3:o, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 1:q
+        =
+        1:e, 1:s, 0:c, 4:c, 2:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 1:o, 1:q
+        =
+        1:e, 0:c, 3:c, 2:[Lem-Special (1) {0:s, 0:o = id}], 2:o, 1:o, 1:q
+        =
+        0:c, 2:c, 2:[Group-unital (1) {0:e, 0:o = id}], 1:o, 1:q
+}
+
+proof  (2) {
+        1:e, 1:s, 2:c, 2:n, 3:o, 3:l, 2:o, 0:[F(Any-Key) (2) {1:c, 0:o, 1:n, 0:l, 0:o = 0:c, 1:o, 1:q}]
+        =
+        1:e, 1:s, 0:c, 1:o, 1:q, 1:[Any-Key (2) {0:c, 0:n, 1:o, 1:l, 0:o = 1:c, 0:o, 0:q}]
+        =
+        1:e, 0:c, 1:[F(Lem-Frobenius) (2) {1:s, 0:o = 0:o, 0:s}], 1:q, 2:c, 1:o, 1:q
+        =
+        0:c, 1:[Group-unital2 (1) {1:e, 0:o = id}], 1:s, 1:q, 2:c, 1:o, 1:q
+        =
+        0:c, 2:c, 1:[Lem-Frobenius (2) {0:s, 1:o = 0:o, 0:s}], 1:q, 1:q
+        =
+        0:c, 2:c, 1:o, 1:[Dist(x,q,s) (1) {0:s, 0:q, 0:q < 0:q}]
+}
+
+lem  prob-leak (0) {
+    0:b, 0:l, 0:d
+    =
+    id
 }

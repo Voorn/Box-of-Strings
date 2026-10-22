@@ -1,17 +1,17 @@
-# Scalars #
+# Scalars: experimental #
 
 # We import bialgebra theory #
-Import{bialgebra}
+import  bialgebra
 
 # We limit naturality properties, so we can show case more proofs of induction #
-Schema{naturality}{x.c}{x.c.d.b.e}
-Schema{naturality}{x.e}{x.c.d.b.e}
-Schema{naturality}{x.d}{x.c.d.b.e}
-Schema{naturality}{x.b}{x.c.d.b.e}
+schema naturality {x,c} {x,c,d,b,e}
+schema naturality {x,e} {x,c,d,b,e}
+schema naturality {x,d} {x,c,d,b,e}
+schema naturality {x,b} {x,c,d,b,e}
 
 # We introduce a scalar operation, with a parameter (designated with %) #
 # Parameters can contains any natural number polynomial as expression #
-Operation{t}{%i}{1}{1}
+op t : 1 -> 1 [%i]
 
 # 0-scalar is defined as follows #
 def  0-scalar (1) {

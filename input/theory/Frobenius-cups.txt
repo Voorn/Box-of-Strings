@@ -21,11 +21,29 @@ lem  cup-twist (0) {
     0:u
 }
 
+proof  (0) {
+	0:[cup (0) {0:u = 0:b, 0:c}], 0:x
+	=
+	0:b, 0:[M(commutative) (1) {0:c, 0:x = 0:c}]
+	=
+	0:[cup (0) {0:b, 0:c = 0:u}]
+}
+
+
 lem  cupper (0) {
     0:u, 0:c
     =
     0:u, 1:c
 }
+
+proof  (0) {
+	0:[cup (0) {0:u = 0:b, 0:c}], 0:c
+	=
+	0:b, 0:[M(associative) (1) {0:c, 0:c = 0:c, 1:c}]
+	=
+	0:[cup (0) {0:b, 0:c = 0:u}], 1:c
+}
+
 
 lem  chipped-cup (0) {
     0:u, 0:d
@@ -33,9 +51,27 @@ lem  chipped-cup (0) {
     0:b
 }
 
+proof  (0) {
+	0:[cup (0) {0:u = 0:b, 0:c}], 0:d
+	=
+	0:b, 0:[M(unitality) (1) {0:c, 0:d = id}]
+}
+
+
 lem  snake-cups (1) {
     0:u, 1:v
     =
     id
 }
 
+proof  (1) {
+	0:[cup (0) {0:u = 0:b, 0:c}], 1:v
+	=
+	0:b, 0:c, 1:[M(cup) (2) {0:v = 0:e, 0:d}]
+	=
+	0:b, 0:[Frobenius;M(Frobenius) (2) {0:c, 1:e = 1:c, 0:e}], 1:d
+	=
+	0:c, 0:[unitality (1) {0:b, 0:e = id}], 1:d
+	=
+	0:[M(F(unitality)) (1) {0:c, 1:d = id}]
+}

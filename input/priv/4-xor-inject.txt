@@ -1,12 +1,12 @@
 # XOR-calculus with injections #
 
-Import{priv/1-xor-extended}
-Import{priv/2-xor-prob}
+import algebra/xor2
+import prob/xor-prob
 
 op  i : 0 -> 1  [inject]
 op  v : 1 -> 1  [inject]
 
-Schema{>naturality}{x.i}{}
+schema naturality> {x,i} {}
 
 note {Adversary can choose input for the injection unit. We want resilience against any possible injection.}
 show  Injection (0) {

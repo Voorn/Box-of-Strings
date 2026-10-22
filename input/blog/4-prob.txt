@@ -1,0 +1,314 @@
+# Layer 2: Commutative group with uniform generatr, #
+# or commutative Hopf algebra with integral #
+
+# Dependencies #
+import  blog/3-group
+
+op  b : 0 -> 1  [2]
+op  s : 1 -> 2  [w]
+
+
+note {Generating a uniform element}
+show  Uniform (0) {
+        0:b
+}
+
+
+note {Discarding a uniformly generated element yields no side effects}
+def  Gen-total (0) {
+        0:b, 0:d
+        =
+        id
+}
+
+
+note {Group operation over uniform element completely scrambles the other input}
+def  Scramble (1) {
+        0:b, 0:o
+        =
+        0:d, 0:b
+}
+
+
+lem  Lem-scramble (1) {
+        1:b, 0:o
+        =
+        0:d, 0:b
+}
+
+proof  (1) {
+	1:b, 0:[Group-commutative (2) {0:o = 0:x, 0:o}]
+	=
+	0:[SymU(x,b) (1) {1:b, 0:x = 0:b}], 0:o
+	=
+	0:[Scramble (1) {0:b, 0:o = 0:d, 0:b}]
+}
+
+lem  Lem-gen-inv (0) {
+        0:b, 0:n
+        =
+        0:b
+}
+
+
+proof  (0) {
+          0:b, 0:n, 0:[Group-neutral (1) {id = 0:e, 0:o}]
+        = 0:b, 0:[Gen-total (0) {id = 0:b, 0:d}], 0:n, 0:e, 0:o
+        = 0:b, 0:b, 1:n, 0:[Lem-inverse (1) {0:d, 0:e = 0:c, 1:n, 0:o}], 0:o
+        = 0:b, 0:b, 1:n, 0:c, 1:n, 0:[Group-assoc (3) {0:o, 0:o = 1:o, 0:o}]
+        = 0:b, 0:b, 0:c, 1:[F(Lem-inv-Op) (2) {0:n, 1:n, 0:o = 0:o, 0:n}], 0:o
+        = 0:b, 0:c, 1:[Lem-scramble (1) {1:b, 0:o = 0:d, 0:b}], 1:n, 0:o
+        = 0:b, 0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:b, 1:n, 0:o
+        = 0:b, 0:n, 0:[Scramble (1) {0:b, 0:o = 0:d, 0:b}]
+        = 0:b, 0:[Inv-total (1) {0:n, 0:d = 0:d}], 0:b
+        = 0:[Gen-total (0) {0:b, 0:d = id}], 0:b
+}
+
+lem  NotCopyHelp (1) {
+    0:c, 0:n
+    =
+    0:n, 0:c, 1:n
+}
+
+proof  (1) {
+	0:[Double-Inverse (1) {id = 0:n, 0:n}], 0:c, 0:n
+	=
+	0:n, 0:[Dist(x,c,n) (1) {0:n, 0:c = 0:c, 0:n, 1:n}], 0:n
+	=
+	0:n, 0:c, 1:n, 0:[Double-Inverse (1) {0:n, 0:n = id}]
+}
+
+
+lem  NotCopyHelp2 (1) {
+    0:c, 1:n
+    =
+    0:n, 0:c, 0:n
+}
+
+proof  (1) {
+	0:[Double-Inverse (1) {id = 0:n, 0:n}], 0:c, 1:n
+	=
+	0:n, 0:[Dist(x,c,n) (1) {0:n, 0:c = 0:c, 0:n, 1:n}], 1:n
+	=
+	0:n, 0:c, 0:n, 1:[Double-Inverse (1) {0:n, 0:n = id}]
+}
+
+note {We can split an element randomly into two. The two outputs are called additive shares.}
+def  Def-split (1) {
+        0:s
+        =
+        0:b, 0:c, 1:o, 0:n
+}
+
+note {Split has an alternative definition. We can prove the two are equal using the given assumptions.}
+lem  Lem-split-alt (1) {
+        0:s
+        =
+        1:b, 1:c, 0:o, 1:n
+}
+
+proof  (1) {
+	0:s, 1:[Copy-unital (1) {id = 0:c, 0:d}]
+	=
+	0:s, 1:c, 1:d, 0:[Group-unital2 (1) {id = 1:e, 0:o}]
+	=
+	0:s, 1:c, 1:[Group-inverse2 (1) {0:d, 0:e = 0:c, 1:n, 0:o}], 0:o
+	=
+	0:s, 1:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 2:n, 1:o, 0:o
+	=
+	0:s, 1:c, 2:c, 2:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}]
+	=
+	0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 1:c, 2:c, 2:n, 0:o, 0:o
+	=
+	0:b, 0:c, 0:n, 1:[Dist(x,c,o) (2) {0:o, 0:c = 0:c, 2:c, 1:x, 0:o, 1:o}], 2:c, 2:n, 0:o, 0:o
+	=
+	0:b, 0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 0:n, 3:c, 2:x, 1:o, 2:o, 2:c, 2:n, 0:o, 0:o
+	=
+	0:b, 0:c, 0:c, 0:n, 3:c, 2:x, 3:o, 3:c, 3:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}], 0:o
+	=
+	0:b, 0:c, 2:c, 1:x, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 2:o, 2:c, 2:n, 0:o, 0:o
+	=
+	0:b, 0:[Copy-unital (1) {0:c, 0:d = id}], 1:c, 0:x, 0:e, 2:o, 2:c, 2:n, 0:o, 0:o
+	=
+	0:c, 0:b, 0:x, 1:o, 1:c, 1:n, 0:[Group-unital (1) {0:e, 0:o = id}], 0:o
+	=
+	0:c, 0:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 1:o, 1:c, 1:n, 0:o
+	=
+	0:c, 1:[Scramble (1) {0:b, 0:o = 0:d, 0:b}], 1:c, 1:n, 0:o
+	=
+	0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:b, 1:c, 1:n, 0:o
+	=
+	1:b, 1:[0c0n=0n0c1n (1) {0:c, 0:n = 0:n, 0:c, 1:n}], 0:o
+	=
+	1:[Lem-gen-inv (0) {0:b, 0:n = 0:b}], 1:c, 2:n, 0:o
+}
+
+note {The split and sum operations together form a commutative Frobenius-like structure. We got through the various lemmas.}
+lem  Lem-split-com (1) {
+        0:s, 0:x
+        =
+        0:s
+}
+
+proof  (1) {
+	0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 0:x
+	=
+	0:b, 0:c, 1:o, 0:[SymD(x,n) (2) {0:n, 0:x = 0:x, 1:n}]
+	=
+	0:b, 0:c, 0:[SymU(x,o) (3) {1:o, 0:x = 0:x, 1:x, 0:o}], 1:n
+	=
+	0:b, 0:[Copy-commutative (1) {0:c, 0:x = 0:c}], 1:x, 0:o, 1:n
+	=
+	0:b, 0:[Copy-wire-up (2) {0:c, 1:x = 0:x, 1:c, 0:x}], 0:o, 1:n
+	=
+	0:[SymD(x,b) (1) {0:b, 0:x = 1:b}], 1:c, 0:x, 0:o, 1:n
+	=
+	1:b, 1:c, 0:[Group-commutative (2) {0:x, 0:o = 0:o}], 1:n
+	=
+	0:[Lem-split-alt (1) {1:b, 1:c, 0:o, 1:n = 0:s}]
+}
+
+
+
+lem  Lem-split-assoc (1) {
+        0:s, 0:s
+        =
+        0:s, 1:s
+}
+
+proof  (1) {
+	0:s, 0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}]
+	=
+	0:[Lem-split-alt (1) {0:s = 1:b, 1:c, 0:o, 1:n}], 0:b, 0:c, 0:n, 1:o
+	=
+	1:b, 1:c, 2:n, 0:b, 0:c, 0:n, 1:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}]
+	=
+	0:b, 0:c, 0:n, 1:o, 1:[Lem-split-alt (1) {1:b, 1:c, 0:o, 1:n = 0:s}]
+	=
+	0:[Def-split (1) {0:b, 0:c, 0:n, 1:o = 0:s}], 1:s
+}
+
+
+
+lem  Lem-Special (1) {
+        0:s, 0:o
+        =
+        id
+}
+
+proof  (1) {
+	0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 0:o
+	=
+	0:b, 0:c, 0:n, 0:[Group-associative (3) {1:o, 0:o = 0:o, 0:o}]
+	=
+	0:b, 0:[Group-inverse (1) {0:c, 0:n, 0:o = 0:d, 0:e}], 0:o
+	=
+	0:e, 1:[Gen-total (0) {0:b, 0:d = id}], 0:o
+	=
+	0:[Group-unital (1) {0:e, 0:o = id}]
+}
+
+
+
+lem  Lem-Frobenius (2) {
+        0:s, 1:o
+        =
+        0:o, 0:s
+}
+
+proof  (2) {
+	0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 1:o
+	=
+	0:b, 0:c, 1:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}], 0:n
+	=
+	0:o, 0:[Def-split (1) {0:b, 0:c, 0:n, 1:o = 0:s}]
+}
+
+
+
+lem  Lem-gen-split (0) {
+        0:b, 0:s
+        =
+        0:b, 1:b
+}
+
+proof  (0) {
+	0:b, 0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}]
+	=
+	0:b, 0:c, 0:n, 1:[Lem-scramble (1) {1:b, 0:o = 0:d, 0:b}]
+	=
+	0:b, 0:[Copy-unital2 (1) {0:c, 1:d = id}], 0:n, 1:b
+	=
+	0:[Lem-gen-inv (0) {0:b, 0:n = 0:b}], 1:b
+}
+
+
+
+lem  Lem-split-cancel (1) {
+        0:s, 0:d
+        =
+        0:d, 0:b
+}
+
+proof  (1) {
+	0:[Def-split (1) {0:s = 0:b, 0:c, 0:n, 1:o}], 0:d
+	=
+	0:b, 0:c, 0:[Dist(x,d,n) (1) {0:n, 0:d = 0:d}], 0:o
+	=
+	0:b, 0:[Copy-unital (1) {0:c, 0:d = id}], 0:o
+	=
+	0:[Scramble (1) {0:b, 0:o = 0:d, 0:b}]
+}
+
+
+
+lem  Lem-split-cancel2 (1) {
+        0:s, 1:d
+        =
+        0:d, 0:b
+}
+
+proof  (1) {
+	0:[Lem-split-com (1) {0:s = 0:s, 0:x}], 1:d
+	=
+	0:s, 0:[SymD(x,d) (2) {0:x, 1:d = 0:d}]
+	=
+	0:[Lem-split-cancel (1) {0:s, 0:d = 0:d, 0:b}]
+}
+
+lem  BubbleLeak (1) {
+    0:s, 1:c, 0:o
+    =
+    1:b
+}
+
+proof  (1) {
+	0:[Lem-split-alt (1) {0:s = 1:b, 1:c, 0:o, 1:n}], 1:c, 0:o
+	=
+	1:b, 1:c, 0:o, 1:[Dist(x,c,n) (1) {0:n, 0:c = 0:c, 0:n, 1:n}], 0:o
+	=
+	1:b, 1:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 0:o, 1:n, 2:n, 0:o
+	=
+	1:b, 1:c, 1:c, 2:n, 3:n, 0:[Group-associative (3) {0:o, 0:o = 1:o, 0:o}]
+	=
+	1:b, 1:c, 1:[Group-inverse2 (1) {0:c, 1:n, 0:o = 0:d, 0:e}], 0:o, 1:n
+	=
+	1:b, 1:[Copy-unital (1) {0:c, 0:d = id}], 1:e, 0:o, 1:n
+	=
+	1:b, 0:[Group-unital2 (1) {1:e, 0:o = id}], 1:n
+	=
+	1:[Lem-gen-inv (0) {0:b, 0:n = 0:b}]
+}
+
+
+lem  One-Time-Pad (1) {
+    0:b, 0:c, 1:o, 1:c, 0:n, 0:o
+    =
+    1:b
+}
+
+proof  (1) {
+	0:[Def-split (1) {0:b, 0:c, 0:n, 1:o = 0:s}], 1:c, 0:o
+	=
+	0:[BubbleLeak (1) {0:s, 1:c, 0:o = 1:b}]
+}

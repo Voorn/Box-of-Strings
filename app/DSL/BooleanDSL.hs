@@ -16,10 +16,10 @@ module DSL.BooleanDSL
 
 import DSL.DSLClass
 import DSL.StandardMonad
-import SemanticInterpreterPoly
+import Semantics.SemanticInterpreterPoly
 import Control.Monad.Except
 import qualified Data.Map as Map
-import SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
+import Semantics.SemanticFree (Var(..), Semantic, Bundle, CompositeLibrary)
 
 -- =====================================================
 -- VALUE TYPES
@@ -96,6 +96,10 @@ opOrConcrete :: [BoolValue] -> BoolDSL [BoolValue]
 opOrConcrete [VBool a, VBool b] = return [VBool (a || b)]
 opOrConcrete _ = liftError "OR: type mismatch"
 
+opXorConcrete :: [BoolValue] -> BoolDSL [BoolValue]
+opXorConcrete [VBool a, VBool b] = return [VBool ((a && not b) || (not a && b))]
+opXorConcrete _ = liftError "XOR: requires concrete Boolean values"
+
 opNotConcrete :: [BoolValue] -> BoolDSL [BoolValue]
 opNotConcrete [VBool a] = return [VBool (not a)]
 opNotConcrete _ = liftError "NOT: type mismatch"
@@ -134,18 +138,18 @@ booleanSymbolicEnv n = loadOps symbolicOps baseEnv
     baseEnv = emptyEnv
         { varMapping = Map.fromList [(Var i, VExpr (BVar i)) | i <- [0..n-1]] }
 
-symbolicOps :: [((Char, String), [BoolValue] -> BoolDSL [BoolValue])]
+symbolicOps :: [((String, String), [BoolValue] -> BoolDSL [BoolValue])]
 symbolicOps =
-    [ (('a', ""), opAndSymbolic)
-    , (('o', ""), opOrSymbolic)
-    , (('n', ""), opNotSymbolic)
-    , (('c', "2"), opCopy)
-    , (('d', "2"), opDiscard)
-    , (('1', ""), opTrueSymbolic)
-    , (('0', ""), opFalseSymbolic)
-    , (('x', "1"), opSwap)
-    , (('e', ""), opEquals)
-    , (('e', "2"), opEquals)
+    [ (("a", ""), opAndSymbolic)
+    , (("o", ""), opOrSymbolic)
+    , (("n", ""), opNotSymbolic)
+    , (("c", "2"), opCopy)
+    , (("d", "2"), opDiscard)
+    , (("1", ""), opTrueSymbolic)
+    , (("0", ""), opFalseSymbolic)
+    , (("x", "1"), opSwap)
+    , (("e", ""), opEquals)
+    , (("e", "2"), opEquals)
     ]
 
 booleanConcreteEnv :: [BoolValue] -> Env BoolDSL BoolValue
@@ -154,18 +158,19 @@ booleanConcreteEnv vals = loadOps concreteOps baseEnv
     baseEnv = emptyEnv
         { varMapping = Map.fromList [(Var i, v) | (i, v) <- zip [0..] vals] }
 
-concreteOps :: [((Char, String), [BoolValue] -> BoolDSL [BoolValue])]
+concreteOps :: [((String, String), [BoolValue] -> BoolDSL [BoolValue])]
 concreteOps =
-    [ (('a', ""), opAndConcrete)
-    , (('o', ""), opOrConcrete)
-    , (('n', ""), opNotConcrete)
-    , (('c', "2"), opCopy)
-    , (('d', "2"), opDiscard)
-    , (('1', ""), opTrue)
-    , (('0', ""), opFalse)
-    , (('x', "1"), opSwap)
-    , (('e', ""), opEquals)
-    , (('e', "2"), opEquals)
+    [ (("a", ""), opAndConcrete)
+    , (("o", ""), opOrConcrete)
+    , (("n", ""), opNotConcrete)
+    , (("c", "2"), opCopy)
+    , (("d", "2"), opDiscard)
+    , (("1", ""), opTrue)
+    , (("0", ""), opFalse)
+    , (("x", "1"), opSwap)
+    , (("e", ""), opEquals)
+    , (("e", "2"), opEquals)
+    , (("r", "xor") , opXorConcrete)
     ]
 
 -- =====================================================

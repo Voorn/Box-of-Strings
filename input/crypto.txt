@@ -1,187 +1,91 @@
 # Show-case of symmetric key encryption with key-gen ? and encryption/decryption operation s #
 
 # Import the copy-discard category theory #
-Import{theory/cartesian}
+import  theory/cartesian
 
-# SYMMETRIC ENCRYPTION & KEYGEN #
-Operation{s}{}{2}{1}
+op  s : 2 -> 1
 
-
-
-
-Assume{3}{
-	0.s;
-	0.x;
-}{
-	1.x;
-	0.x;
-	1.s;
+def  EncryptDecrypt (2) {
+    0:c, 1:s, 0:s
+    =
+    0:d
 }
 
-Assume{3}{
-	1.s;
-	0.x;
-}={
-	0.x;
-	1.x;
-	0.s;
+lem  EncryptAndDecrypt (2) {
+    0:c, 1:s, 1:c, 0:x, 1:s
+    =
+    1:c, 0:s
 }
 
-# Symmetric Key Decrypt# 
-Definition{2}{
-	0.c;
-	1.s;
-	0.s;
-}
-======================
-{
-	0.d;
-}
-
-# Doubly encrypted #
-Example{3}{
-	0.c;
-	1.x;
-	1.c;
-	3.s;
-	2.s;
-	1.s;
-	0.s;
-}={
-	0.d;
-	0.d;
+proof  (2) {
+	0:c, 1:[Dist(x,c,s) (2) {0:s, 0:c = 0:c, 2:c, 1:x, 0:s, 1:s}], 0:x, 1:s
+	=
+	0:[Copy-associative (1) {0:c, 1:c = 0:c, 0:c}], 3:c, 2:x, 1:s, 2:s, 0:x, 1:s
+	=
+	0:c, 0:c, 3:c, 2:x, 3:s, 0:[SymU(x,s) (3) {1:s, 0:x = 0:x, 1:x, 0:s}], 1:s
+	=
+	0:c, 2:c, 1:x, 2:s, 0:[Copy-commutative (1) {0:c, 0:x = 0:c}], 1:x, 0:s, 1:s
+	=
+	0:[Copy-associative (1) {0:c, 0:c = 0:c, 1:c}], 3:c, 2:x, 3:s, 1:x, 0:s, 1:s
+	=
+	0:c, 2:c, 1:[SymD(x,c) (2) {0:c, 1:x, 0:x = 0:x, 1:c}], 3:s, 0:s, 1:s
+	=
+	0:c, 2:c, 1:x, 2:[EncryptDecrypt (2) {0:c, 1:s, 0:s = 0:d}], 0:s
+	=
+	0:c, 2:c, 1:[SymD(x,d) (2) {0:x, 1:d = 0:d}], 0:s
+	=
+	0:[Copy-unital2 (1) {0:c, 1:d = id}], 1:c, 0:s
 }
 
+schema  naturality {x,c} {x,c,s,d}
 
+op  k : 0 -> 1
 
-
-Display{2}{
-	0.x;
-	0.s;
-}={
-	0.s;
+def  Scramble (1) {
+    0:k, 0:s
+    =
+    0:d, 0:k
 }
 
-Lemma{2}{
-	1.c;
-	0.s;
-	0.s;
+lem  OneTimePad (1) {
+    0:k, 0:c, 1:s, 1:c, 0:x, 1:s
+    =
+    0:k
 }
-======================
-{
-	1.d;
+
+proof  (1) {
+	0:k, 0:[EncryptAndDecrypt (2) {0:c, 1:s, 1:c, 0:x, 1:s = 1:c, 0:s}]
+	=
+	0:c, 0:[Scramble (1) {0:k, 0:s = 0:d, 0:k}]
+	=
+	0:[Copy-unital (1) {0:c, 0:d = id}], 0:k
 }
 
 
-# Before adding random keygen, we limit naturality conditions of copy #
-Schema{naturality}{x.c}{x.c.s.d}
+op  u : 2 -> 1
 
-# RANDOM #
-Operation{?}{}{0}{1}
-
-# Naturality of Discard (Random)# 
-Display{0}{
-	0.?;
-	0.d;
-}={}
-
-# Naturality of swap (Random)# 
-Assume{1}{
-	0.?; 
-	0.x;
-}={
-	1.?;
+def  Unlocker (3) {
+    0:c, 1:x, 0:s, 1:s, 0:u
+    =
+    0:d, 0:u
 }
 
-Assume{1}{
-	1.?; 
-	0.x;
-}={
-	0.?;
+lem  OTP-twice (2) {
+    0:k, 0:c, 1:x, 0:c, 3:c, 1:s, 3:s, 1:c, 4:c, 3:x, 0:x, 1:s, 3:s, 1:x, 0:u
+    =
+    0:c, 2:c, 1:x, 0:u
 }
 
-# Doubly encrypted #
-Example{1}{
-	0.?; 
-	0.c;
-	1.s;
-	2.?;
-	2.c; 
-	1.s;
-	1.s;
-	0.s;
-}={}
-
-# Symmetric Key Determinism# 
-Definition{2}{
-	0.s;
-	0.c;
+proof  (2) {
+	0:k, 0:c, 1:x, 0:c, 1:s, 1:c, 0:x, 1:s, 2:[EncryptAndDecrypt (2) {0:c, 1:s, 1:c, 0:x, 1:s = 1:c, 0:s}], 1:x, 0:u
+	=
+	0:k, 0:c, 1:x, 3:c, 2:s, 0:[EncryptAndDecrypt (2) {0:c, 1:s, 1:c, 0:x, 1:s = 1:c, 0:s}], 1:x, 0:u
+	=
+	0:k, 0:c, 1:x, 1:c, 4:c, 0:s, 1:[SymU(x,s) (3) {1:s, 0:x = 0:x, 1:x, 0:s}], 0:u
+	=
+	0:k, 0:c, 1:[Copy-wire-down (2) {0:x, 0:c, 1:x = 1:c, 0:x}], 4:c, 0:s, 2:x, 1:s, 0:u
+	=
+	0:k, 1:c, 3:c, 2:x, 0:[Unlocker (3) {0:c, 1:x, 0:s, 1:s, 0:u = 0:d, 0:u}]
+	=
+	0:[Dist(x,d,k) (0) {0:k, 0:d = id}], 0:c, 2:c, 1:x, 0:u
 }
-======================
-{
-	0.c;
-	2.c;
-	1.x;
-	0.s;
-	1.s;
-}
-
-
-
-
-
-# Symmetric Key Privacy# 
-
-Assume{1}{
-	1.?; 
-	0.s;
-}={
-	0.d;
-	0.?;
-}
-
-Definition{1}{
-	0.?; 
-	0.s;
-}={
-	0.d;
-	0.?;
-}
-
-
-# Same key encryption # 
-Example{1}{
-	0.c;
-	1.?; 
-	1.c;
-	0.s;
-	1.s;
-}={
-	0.?;
-	1.d;
-	0.c;
-}
-
-Lemma{1}{	
-	0.?;
-	0.c;
-	1.s;
-	1.c;
-	0.s;
-}={	
-	1.?;
-}
-
-
-# Discarding encryption # 
-Definition{2}{
-	0.s;
-	0.d;
-}={
-	0.d;
-	0.d;
-}
-
-
-
-
