@@ -10,6 +10,8 @@ op  t : 2 -> 0  [v]
 schema  symmetry  {x} {}
 schema  symmetry  {y} {}
 
+show Over-swap (2) {0:x}
+show Under-swap (2) {0:y}
 
 def  Over-Under (2) {
         0:x, 0:y
@@ -23,28 +25,68 @@ def  Under-Over (2) {
         id
 }
 
+lem  Cross-Down-1 (3) {
+    1:x, 0:x, 1:x, 0:y
+    =
+    0:x, 1:x
+}
+
+
+show Cup (0) {0:u}
+show Cap (2) {0:t}
+
+
 def  Loop-Over (0) {
         0:u, 0:x
         =
         0:u
 }
 
-def  Loop-Under (0) {
+def  Loop2-Over (2) {
+        0:x, 0:t
+        =
+        0:t
+}
+
+lem  Loop-Under (0) {
         0:u, 0:y
         =
         0:u
 }
+lem-hide Loop2-Under (2) {
+        0:y, 0:t
+        =
+        0:t
+}
+
+lem Cup-swap (1) {
+	0:u , 1:x
+	=
+	1:u , 0:y
+}
+lem-hide Cup-swap2 (1) {0:u , 1:y = 1:u , 0:x}
+lem-hide Cap-swap (3) {1:y , 0:t = 0:x , 1:t}
+lem-hide Cap-swap2 (3) {1:x , 0:t = 0:y , 1:t}
 
 
-def  Axiom7 (1) {
+def  S-Curve (1) {
         0:u, 1:t
         =
         id
 }
 
-
-lem  Lemma8 (1) {
+lem  Loop-up-over (1) {
         0:u, 1:x, 0:t
+        =
+        id
+}
+
+lem-hide  Loop-up-under (1) {0:u, 1:y, 0:t = id}
+lem-hide  Loop-down-over (1) {1:u, 0:y, 1:t = id}
+lem-hide  Loop-down-under (1) {1:u, 0:x, 1:t = id}
+
+lem  Z-Curve (1) {
+        1:u, 0:t
         =
         id
 }
@@ -62,3 +104,10 @@ example  Example13 (1) {
         =
         id
 }
+
+def  Bubble (0) {
+    0:u, 0:t
+    =
+    id
+}
+

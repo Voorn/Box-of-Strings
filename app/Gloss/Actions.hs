@@ -362,9 +362,9 @@ doOption s w@(World m loc (q , size , ori , zom) (goal , rew , (hist , hi , f) ,
     |   s == 3  =   zoomAction w
     -- Save relation
     |   s == 4  =   let (rel , _ , theory , futu , now , past , comment , file_name') = law in
-                    let (_ , _ , (rews , i , _) , _ , _) = winfo w in
+                    let (_ , _ , (rews , i , _) , mr , _) = winfo w in
                     let pruf = sprawlProofUpto rews i in
-                    let newrelat = extractRel (name ++ "+") Lemma (fst rews) (proofSeq pruf) MEqual in
+                    let newrelat = extractRel (name ++ "+") Lemma (fst rews) (proofSeq pruf) mr in
                     let newrelat' = relatSName newrelat in
                     let disp = relatProofDisp newrelat' pruf in
                     let law' = (rel , Just (m , i , hist , goal) , theory , futu , now , disp : past , comment , file_name') in
@@ -978,14 +978,16 @@ clickEdit (mx , my) w@(World m loc (q@(Edit rel@(mr , st , go , nam , why) mo) ,
     |   quickMY size my <= 19
                     =   if relatCheck rel then
                             let disp = relatDisp rel in
-                            let (_ , _ , theory , future , _ , past , comment , file) = law in
-                            let law' = (rel , Nothing , theory , future , disp , past , comment , file) in
+                            let (_ , _ , (sigs , schem , relat , par) , future , _ , past , comment , file) = law in
+                            let newrels = sieveRelat (rel : newRelats schem [rel]) in
+                            let theory' = (sigs , schem , filterAdd' newrels relat , addRelatsPar newrels par) in
+                            let law' = (rel , Nothing , theory' , future , disp , past , comment , file) in
                             let (file_name , file_code) = reconstPage law' "" in
                             do {putStrLn file_name ;
                                 writeFile file_name file_code ;
                                 return (pageWorld (worldSize w) (worldOrient w) (worldZoom w) law' (worldExtra w))}
-                else
-                    return w
+                        else
+                            return w
 -- Initialize (or cancel) adding a new operation
     |   quickMY size my <= 20
                     =   case mo of
@@ -1009,6 +1011,8 @@ clickEdit (mx , my) w@(World m loc (q@(Edit rel@(mr , st , go , nam , why) mo) ,
     |   otherwise
                     =   previousPage law >>= \law' -> return (pageWorld (worldSize w) (worldOrient w) (worldZoom w) law' (worldExtra w))
 clickEdit _ w = return w
+
+
 
 
 -- Right click action

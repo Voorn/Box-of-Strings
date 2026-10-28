@@ -268,7 +268,7 @@ pictureMorph l h ori bh pv (Op m i o) ((x , y , b , bf) : r) =
                         mq , lnotch , mlin ++ llin)
         -- Swap-slash inverted (e.g. used in braided categories)
         Base (Sig _ (Nothing , "4") _ _) ->
-                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 4 (os/4)) bh x y pv mnotch in
+                    let (lp , lnotch , llin) = notchLineCirc h l 0 i oi oi oo (max 2 (os/8) * 2.8) bh x y pv mnotch in
                     (mp ++ lp , dash (max 2 (os/8)) x y :
                         mq , lnotch , mlin ++ llin)
         -- ?
